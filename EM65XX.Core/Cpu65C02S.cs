@@ -1,6 +1,5 @@
 ﻿using EM65XX.Core.Abstraction;
 using EM65XX.Core.Enums;
-using EM65XX.Core.Extensions;
 
 namespace EM65XX.Core;
 
@@ -13,79 +12,49 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     public Cpu65C02S(IMemory memory)
     {
-        _stack = new(memory, STACK_PAGE);
         Memory = memory;
 
+        _stack = new(memory, STACK_PAGE);
+        Registers = new(_stack);
+
         _handlers.Add(Mnemonic.NOP, NOP);
+
         _handlers.Add(Mnemonic.LDA, LDA);
         _handlers.Add(Mnemonic.LDX, LDX);
         _handlers.Add(Mnemonic.LDY, LDY);
+
+        // Flags
+        _handlers.Add(Mnemonic.CLC, CLC);
+        _handlers.Add(Mnemonic.SEC, SEC);
+        _handlers.Add(Mnemonic.CLI, CLI);
+        _handlers.Add(Mnemonic.SEI, SEI);
+        _handlers.Add(Mnemonic.CLV, CLV);
+        _handlers.Add(Mnemonic.CLD, CLD);
+        _handlers.Add(Mnemonic.SED, SED);
     }
 
-    #region Registers
+    public Registers Registers { get; }
 
-    /// <summary>
-    /// Accumulator A
-    /// </summary>
-    public byte RegisterA { get; set; }
-
-    /// <summary>
-    /// Index Register X
-    /// </summary>
-    public byte RegisterX { get; set; }
-
-    /// <summary>
-    /// Index Register Y
-    /// </summary>
-    public byte RegisterY { get; set; }
-
-    /// <summary>
-    /// Processor Status Register P
-    /// </summary>
-    public byte ProcessorStatus
-    {
-        get => (byte)StatusFlags;
-        set => StatusFlags = (Flags)value;
-    }
-
-    /// <summary>
-    /// Program Counter PC
-    /// </summary>
-    public ushort ProgramCounter { get; set; }
-
-    /// <summary>
-    /// Stack Pointer S
-    /// </summary>
-    public byte StackPointer 
-    {
-        get => _stack.Pointer;
-        set => _stack.Pointer = value;
-    }
-
-    #endregion
-
-    public Flags StatusFlags { get; set; }
-
-    public byte OpCode => Memory[ProgramCounter];
+    public byte OpCode => Memory[Registers.ProgramCounter];
 
     public IMemory Memory { get; }
 
     public void Reset()
     {
-        ProcessorStatus |= 0b00000100;
-        ProcessorStatus &= 0b11110111;
+        Registers.UpdateFlags(Flags.Break | Flags.Interrupt, true);
+        Registers.UpdateFlags(Flags.Decimal, false);
 
-        ProgramCounter = 0xFFFC;
-        ProgramCounter = ReadAddress(AddressingMode.Absolute);
+        Registers.ProgramCounter = 0xFFFC;
+        Registers.ProgramCounter = ReadAddress(AddressingMode.Absolute);
     }
 
     public void Tick()
     {
         var instruction = InstructionsTable.Get(OpCode);
-        ProgramCounter++;
+        Registers.ProgramCounter++;
 
         var handler = _handlers[instruction.Mnemonic];
-        handler(instruction.Mode);            
+        handler(instruction.Mode);
     }
 
     #region Load    
@@ -97,10 +66,8 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
-        RegisterA = Memory[address];
-
-        UpdateNegativeFlag(RegisterA);
-        UpdateZeroFlag(RegisterA);
+        Registers.A = Memory[address];
+        Registers.UpdateNZFlags(Registers.A);
     }
 
     /// <summary>
@@ -110,10 +77,8 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
-        RegisterX = Memory[address];
-
-        UpdateNegativeFlag(RegisterX);
-        UpdateZeroFlag(RegisterX);
+        Registers.X = Memory[address];
+        Registers.UpdateNZFlags(Registers.X);
     }
 
     /// <summary>
@@ -123,10 +88,68 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
-        RegisterY = Memory[address];
+        Registers.Y = Memory[address];
+        Registers.UpdateNZFlags(Registers.Y);
+    }
 
-        UpdateNegativeFlag(RegisterY);
-        UpdateZeroFlag(RegisterY);
+    #endregion
+
+    #region Flags
+
+    /// <summary>
+    /// 0 -> C
+    /// </summary>
+    private void CLC(AddressingMode mode)
+    {
+        Registers.UpdateFlags(Flags.Carry, false);
+    }
+
+    /// <summary>
+    /// 1 -> C
+    /// </summary>
+    private void SEC(AddressingMode mode)
+    {
+        Registers.UpdateFlags(Flags.Carry, true);
+    }
+
+    /// <summary>
+    /// 0 -> I
+    /// </summary>
+    private void CLI(AddressingMode mode)
+    {
+        Registers.UpdateFlags(Flags.Interrupt, false);
+    }
+
+    /// <summary>
+    /// 1 -> I
+    /// </summary>
+    private void SEI(AddressingMode mode)
+    {
+        Registers.UpdateFlags(Flags.Interrupt, true);
+    }
+
+    /// <summary>
+    /// 0 -> V
+    /// </summary>
+    private void CLV(AddressingMode mode)
+    {
+        Registers.UpdateFlags(Flags.Overflow, false);
+    }
+
+    /// <summary>
+    /// 0 -> V
+    /// </summary>
+    private void CLD(AddressingMode mode)
+    {
+        Registers.UpdateFlags(Flags.Decimal, false);
+    }
+
+    /// <summary>
+    /// 1 -> V
+    /// </summary>
+    private void SED(AddressingMode mode)
+    {
+        Registers.UpdateFlags(Flags.Decimal, true);
     }
 
     #endregion
@@ -134,26 +157,27 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// No Operation
     /// </summary>
-    private void NOP(AddressingMode mode) 
+    private void NOP(AddressingMode mode)
     {
-              
+
     }
 
     #region Addresses
 
-
-    private void UpdateNegativeFlag(byte value)
-        => StatusFlags = StatusFlags.UpdateFlags(Flags.Negative, value > 0x80);
-
-    private void UpdateZeroFlag(byte value)
-        => StatusFlags = StatusFlags.UpdateFlags(Flags.Zero, value == 0);
-
-    private ushort ReadAddress(AddressingMode mode) => mode switch 
+    private ushort ReadAddress(AddressingMode mode) => mode switch
     {
         AddressingMode.Absolute => ReadAbsoluteAddress(),
-        AddressingMode.Immediate => ProgramCounter++,
 
-        _ => throw new NotSupportedException() 
+        AddressingMode.AbsoluteIndexedX => ReadAbsoluteXAddress(),
+        AddressingMode.AbsoluteIndexedY => ReadAbsoluteYAddress(),
+
+        AddressingMode.ZeroPage => ReadZeroPageAddress(),
+        AddressingMode.ZeroPageIndexedX => ReadZeroPageXAddress(),
+        AddressingMode.ZeroPageIndexedY => ReadZeroPageYAddress(),
+
+        AddressingMode.Immediate => Registers.ProgramCounter++,
+
+        _ => throw new NotSupportedException()
     };
 
     private ushort ReadAbsoluteAddress()
@@ -164,8 +188,33 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         return (ushort)(lo | hi << 8);
     }
 
+    private ushort ReadAbsoluteXAddress()
+    {
+        var lo = ReadNext();
+        var hi = ReadNext();
+
+        return (ushort)((lo | hi << 8) + Registers.X);
+    }
+
+    private ushort ReadAbsoluteYAddress()
+    {
+        var lo = ReadNext();
+        var hi = ReadNext();
+
+        return (ushort)((lo | hi << 8) + Registers.Y);
+    }
+
+    private ushort ReadZeroPageAddress()
+        => ReadNext();
+
+    private ushort ReadZeroPageXAddress()
+        => (byte)(ReadNext() + Registers.X);
+
+    private ushort ReadZeroPageYAddress()
+        => (byte)(ReadNext() + Registers.Y);
+
     #endregion
 
     private byte ReadNext()
-        => Memory[ProgramCounter++];
+        => Memory[Registers.ProgramCounter++];
 }

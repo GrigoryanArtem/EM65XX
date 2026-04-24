@@ -57,8 +57,19 @@ public enum Mnemonic : byte
 
     #region Loads
 
+    /// <summary>
+    /// <b>L</b>oa<b>D</b> <b>A</b>ccumulator
+    /// </summary>
     LDA,
+
+    /// <summary>
+    /// <b>L</b>oa<b>D</b> <b>X</b> register
+    /// </summary>
     LDX,
+
+    /// <summary>
+    /// <b>L</b>oa<b>D</b> <b>Y</b> register
+    /// </summary>
     LDY,
 
     #endregion
@@ -98,12 +109,39 @@ public enum Mnemonic : byte
 
     #region Flags
 
+    /// <summary>
+    /// <b>CL</b>ear <b>C</b>arry
+    /// </summary>
     CLC,
+
+    /// <summary>
+    /// <b>SE</b>t <b>C</b>arry
+    /// </summary>
     SEC,
+
+    /// <summary>
+    /// <b>CL</b>ear <b>I</b>nterrupt disable
+    /// </summary>
     CLI,
+
+    /// <summary>
+    /// <b>SE</b>t <b>I</b>nterrupt disable
+    /// </summary>
     SEI,
+
+    /// <summary>
+    /// <b>CL</b>ear o<b>V</b>erflow
+    /// </summary>
     CLV,
+
+    /// <summary>
+    /// <b>CL</b>ear <b>D</b>ecimal mode
+    /// </summary>
     CLD,
+
+    /// <summary>
+    /// <b>SE</b>t <b>D</b>ecimal mode
+    /// </summary>
     SED,
 
     #endregion

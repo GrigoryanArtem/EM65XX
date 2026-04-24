@@ -19,13 +19,13 @@ public class Memory64K : IMemory
         => _data[address];
 
     public byte Read(byte page, byte address)
-        => _data[page * 0xFF + address];
+        => _data[(page << 8) | address];
 
-    public byte Write(ushort address, byte value)
+    public void Write(ushort address, byte value)
         => _data[address] = value;
 
-    public byte Write(byte page, byte address, byte value)
-        => _data[page * 0xFF + address] = value;
+    public void Write(byte page, byte address, byte value)
+        => _data[(page << 8) | address] = value;
 
     public void Load(ushort offset, params byte[] data)
         => Array.Copy(data, 0, _data, offset, data.Length);    

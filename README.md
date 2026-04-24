@@ -8,18 +8,18 @@ An emulator for the W65C02S processor
 | ---------------------------------------- | --------: |
 | Absolute a                               |         ✅ |
 | Absolute Indexed Indirect (a,x)          |         ❌ |
-| Absolute Indexed with X a,x              |         ❌ |
-| Absolute Indexed with Y a,y              |         ❌ |
+| Absolute Indexed with X a,x              |         ✅ |
+| Absolute Indexed with Y a,y              |         ✅ |
 | Absolute Indirect (a)                    |         ❌ |
 | Accumulator A                            |         ❌ |
 | Immediate #                              |         ✅ |
 | Implied i                                |         ❌ |
 | Program Counter Relative r               |         ❌ |
 | Stack s                                  |         ❌ |
-| Zero Page zp                             |         ❌ |
+| Zero Page zp                             |         ✅ |
 | Zero Page Indexed Indirect (zp,x)        |         ❌ |
-| Zero Page Indexed with X zp,x            |         ❌ |
-| Zero Page Indexed with Y zp,y            |         ❌ |
+| Zero Page Indexed with X zp,x            |         ✅ |
+| Zero Page Indexed with Y zp,y            |         ✅ |
 | Zero Page Indirect (zp)                  |         ❌ |
 | Zero Page Indirect Indexed with Y (zp),y |         ❌ |
 
@@ -63,13 +63,13 @@ An emulator for the W65C02S processor
 | PLP      |         ❌ |
 | PLX      |         ❌ |
 | PLY      |         ❌ |
-| CLC      |         ❌ |
-| SEC      |         ❌ |
-| CLI      |         ❌ |
-| SEI      |         ❌ |
-| CLV      |         ❌ |
-| CLD      |         ❌ |
-| SED      |         ❌ |
+| CLC      |         ✅ |
+| SEC      |         ✅ |
+| CLI      |         ✅ |
+| SEI      |         ✅ |
+| CLV      |         ✅ |
+| CLD      |         ✅ |
+| SED      |         ✅ |
 | CMP      |         ❌ |
 | CPX      |         ❌ |
 | CPY      |         ❌ |
