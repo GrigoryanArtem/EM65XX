@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="EM65XX.Core/EM65XX.Core.csproj" />
+  <Project Path="EM65XX.Terminal/EM65XX.Terminal.csproj" />
+</Solution>
