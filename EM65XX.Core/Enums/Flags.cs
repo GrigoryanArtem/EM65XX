@@ -1,7 +1,7 @@
 ﻿namespace EM65XX.Core.Enums;
 
 [Flags]
-public enum Flags
+public enum Flags : byte
 {
     Carry     = 0x01,
     Zero      = 0x02,

@@ -1,13 +1,28 @@
 ﻿using EM65XX.Core.Abstraction;
 using EM65XX.Core.Enums;
+using EM65XX.Core.Extensions;
 
 namespace EM65XX.Core;
 
-public partial class Cpu65C02S(IMemory memory) : ICentralProcessingUnit
+public partial class Cpu65C02S : ICentralProcessingUnit
 {
     private const byte STACK_PAGE = 1;
 
-    private readonly PageStack _stack = new(memory, STACK_PAGE);    
+    private readonly PageStack _stack;
+    private readonly Dictionary<Mnemonic, Action<AddressingMode>> _handlers = [];
+
+    public Cpu65C02S(IMemory memory)
+    {
+        _stack = new(memory, STACK_PAGE);
+        Memory = memory;
+
+        _handlers.Add(Mnemonic.NOP, NOP);
+        _handlers.Add(Mnemonic.LDA, LDA);
+        _handlers.Add(Mnemonic.LDX, LDX);
+        _handlers.Add(Mnemonic.LDY, LDY);
+    }
+
+    #region Registers
 
     /// <summary>
     /// Accumulator A
@@ -27,7 +42,11 @@ public partial class Cpu65C02S(IMemory memory) : ICentralProcessingUnit
     /// <summary>
     /// Processor Status Register P
     /// </summary>
-    public byte ProcessorStatus { get; set; }
+    public byte ProcessorStatus
+    {
+        get => (byte)StatusFlags;
+        set => StatusFlags = (Flags)value;
+    }
 
     /// <summary>
     /// Program Counter PC
@@ -43,11 +62,13 @@ public partial class Cpu65C02S(IMemory memory) : ICentralProcessingUnit
         set => _stack.Pointer = value;
     }
 
-    public Flags StatusFlags => (Flags)ProcessorStatus;
+    #endregion
+
+    public Flags StatusFlags { get; set; }
 
     public byte OpCode => Memory[ProgramCounter];
 
-    public IMemory Memory { get; } = memory;
+    public IMemory Memory { get; }
 
     public void Reset()
     {
@@ -55,49 +76,96 @@ public partial class Cpu65C02S(IMemory memory) : ICentralProcessingUnit
         ProcessorStatus &= 0b11110111;
 
         ProgramCounter = 0xFFFC;
-        ProgramCounter = ReadAddress();
+        ProgramCounter = ReadAddress(AddressingMode.Absolute);
     }
 
     public void Tick()
     {
-        switch (OpCode)
-        {
-            case 0xA9:
-                LDA();
-                break;
-
-            case 0xEA:
-                NOP();
-                break;
-
-            default:
-                throw new NotImplementedException();
-        }
-            
-    }
-
-    /// <summary>
-    /// LoaD Accumulator with memory
-    /// </summary>
-    private void LDA()
-    {
+        var instruction = InstructionsTable.Get(OpCode);
         ProgramCounter++;
-        RegisterA = Memory[ReadAddress()];
+
+        var handler = _handlers[instruction.Mnemonic];
+        handler(instruction.Mode);            
+    }
+
+    #region Load    
+
+    /// <summary>
+    /// M -> A
+    /// </summary>
+    private void LDA(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        RegisterA = Memory[address];
+
+        UpdateNegativeFlag(RegisterA);
+        UpdateZeroFlag(RegisterA);
     }
 
     /// <summary>
-    /// No OPeration
+    /// M -> X
     /// </summary>
-    private void NOP() 
+    private void LDX(AddressingMode mode)
     {
-        ProgramCounter++;        
+        var address = ReadAddress(mode);
+
+        RegisterX = Memory[address];
+
+        UpdateNegativeFlag(RegisterX);
+        UpdateZeroFlag(RegisterX);
     }
 
-    private ushort ReadAddress()
+    /// <summary>
+    /// M -> Y
+    /// </summary>
+    private void LDY(AddressingMode mode)
     {
-        var lo = Memory[ProgramCounter++];
-        var hi = Memory[ProgramCounter++];
+        var address = ReadAddress(mode);
+
+        RegisterY = Memory[address];
+
+        UpdateNegativeFlag(RegisterY);
+        UpdateZeroFlag(RegisterY);
+    }
+
+    #endregion
+
+    /// <summary>
+    /// No Operation
+    /// </summary>
+    private void NOP(AddressingMode mode) 
+    {
+              
+    }
+
+    #region Addresses
+
+
+    private void UpdateNegativeFlag(byte value)
+        => StatusFlags = StatusFlags.UpdateFlags(Flags.Negative, value > 0x80);
+
+    private void UpdateZeroFlag(byte value)
+        => StatusFlags = StatusFlags.UpdateFlags(Flags.Zero, value == 0);
+
+    private ushort ReadAddress(AddressingMode mode) => mode switch 
+    {
+        AddressingMode.Absolute => ReadAbsoluteAddress(),
+        AddressingMode.Immediate => ProgramCounter++,
+
+        _ => throw new NotSupportedException() 
+    };
+
+    private ushort ReadAbsoluteAddress()
+    {
+        var lo = ReadNext();
+        var hi = ReadNext();
 
         return (ushort)(lo | hi << 8);
-    }        
+    }
+
+    #endregion
+
+    private byte ReadNext()
+        => Memory[ProgramCounter++];
 }
