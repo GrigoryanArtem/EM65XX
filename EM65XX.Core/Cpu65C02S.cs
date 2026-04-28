@@ -1,5 +1,6 @@
 ﻿using EM65XX.Core.Abstraction;
 using EM65XX.Core.Enums;
+using EM65XX.Core.Extensions;
 
 namespace EM65XX.Core;
 
@@ -19,6 +20,12 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
         _handlers.Add(Mnemonic.NOP, NOP);
 
+        // Arithmetic
+        _handlers.Add(Mnemonic.ADC, ADC);
+        _handlers.Add(Mnemonic.SBC, SBC);
+
+
+        // Loads
         _handlers.Add(Mnemonic.LDA, LDA);
         _handlers.Add(Mnemonic.LDX, LDX);
         _handlers.Add(Mnemonic.LDY, LDY);
@@ -56,6 +63,46 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         var handler = _handlers[instruction.Mnemonic];
         handler(instruction.Mode);
     }
+
+    #region Arithmetic
+
+    /// <summary>
+    ///  A + M + C -> A
+    /// </summary>
+    private void ADC(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+        var memValue = Memory[address];
+
+        var carry = Registers.StatusFlags.FlagToByte(Flags.Carry);
+        var value = Registers.A + memValue + carry;
+
+        Registers.UpdateFlags(Flags.Overflow,
+            (((Registers.A ^ value) & 0x80) != 0) &&
+            ((Registers.A ^ memValue) & 0x80) == 0);
+
+        var decimalMode = Registers.StatusFlags.HasFlag(Flags.Decimal);
+        if (decimalMode)
+        {
+            throw new NotImplementedException("Decimal mode is not implemented yet");
+        }
+        else
+        {            
+            Registers.UpdateFlags(Flags.Carry, value > 255);
+        }
+
+        var byteValue = (byte)value;
+
+        Registers.UpdateNZFlags(byteValue);
+        Registers.A = byteValue;
+    }
+
+    private void SBC(AddressingMode mode)
+    {
+        throw new NotImplementedException("SBC is not implemented yet");
+    }
+
+    #endregion
 
     #region Load    
 
