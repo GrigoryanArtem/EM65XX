@@ -30,6 +30,13 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         _handlers.Add(Mnemonic.LDX, LDX);
         _handlers.Add(Mnemonic.LDY, LDY);
 
+        // Stores
+        _handlers.Add(Mnemonic.STA, STA);
+        _handlers.Add(Mnemonic.STX, STX);
+        _handlers.Add(Mnemonic.STY, STY);
+        _handlers.Add(Mnemonic.STZ, STZ);
+
+
         // Flags
         _handlers.Add(Mnemonic.CLC, CLC);
         _handlers.Add(Mnemonic.SEC, SEC);
@@ -137,6 +144,50 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
         Registers.Y = Memory[address];
         Registers.UpdateNZFlags(Registers.Y);
+    }
+
+    #endregion
+
+    #region Stores
+
+    /// <summary>
+    /// A -> M
+    /// </summary>    
+    private void STA(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        Memory[address] = Registers.A;
+    }
+
+    /// <summary>
+    /// X -> M
+    /// </summary>    
+    private void STX(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        Memory[address] = Registers.X;
+    }
+
+    /// <summary>
+    /// Y -> M
+    /// </summary>    
+    private void STY(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        Memory[address] = Registers.Y;
+    }
+
+    /// <summary>
+    /// 00 -> M
+    /// </summary>    
+    private void STZ(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        Memory[address] = 0x00;
     }
 
     #endregion
