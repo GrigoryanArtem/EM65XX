@@ -1,6 +1,8 @@
 ﻿using EM65XX.Core.Abstraction;
+using EM65XX.Core.Attributes;
 using EM65XX.Core.Enums;
 using EM65XX.Core.Extensions;
+using System.Reflection;
 
 namespace EM65XX.Core;
 
@@ -18,33 +20,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         _stack = new(memory, STACK_PAGE);
         Registers = new(_stack);
 
-        _handlers.Add(Mnemonic.NOP, NOP);
-
-        // Arithmetic
-        _handlers.Add(Mnemonic.ADC, ADC);
-        _handlers.Add(Mnemonic.SBC, SBC);
-
-
-        // Loads
-        _handlers.Add(Mnemonic.LDA, LDA);
-        _handlers.Add(Mnemonic.LDX, LDX);
-        _handlers.Add(Mnemonic.LDY, LDY);
-
-        // Stores
-        _handlers.Add(Mnemonic.STA, STA);
-        _handlers.Add(Mnemonic.STX, STX);
-        _handlers.Add(Mnemonic.STY, STY);
-        _handlers.Add(Mnemonic.STZ, STZ);
-
-
-        // Flags
-        _handlers.Add(Mnemonic.CLC, CLC);
-        _handlers.Add(Mnemonic.SEC, SEC);
-        _handlers.Add(Mnemonic.CLI, CLI);
-        _handlers.Add(Mnemonic.SEI, SEI);
-        _handlers.Add(Mnemonic.CLV, CLV);
-        _handlers.Add(Mnemonic.CLD, CLD);
-        _handlers.Add(Mnemonic.SED, SED);
+        RegisterHandlers();
     }
 
     public Registers Registers { get; }
@@ -76,6 +52,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     ///  A + M + C -> A
     /// </summary>
+    [Instruction(Mnemonic.ADC)]
     private void ADC(AddressingMode mode)
     {
         var address = ReadAddress(mode);
@@ -104,6 +81,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         Registers.A = byteValue;
     }
 
+    [Instruction(Mnemonic.SBC)]
     private void SBC(AddressingMode mode)
     {
         throw new NotImplementedException("SBC is not implemented yet");
@@ -111,11 +89,198 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     #endregion
 
-    #region Load    
+    #region Shifts / Rotates
+
+    /// <summary>
+    /// C <- 7 6 5 4 3 2 1 0 <- 0
+    /// </summary>    
+    [Instruction(Mnemonic.ASL)]
+    private void ASL(AddressingMode mode)
+    {        
+        if(mode == AddressingMode.Accumulator)
+        {
+            Registers.UpdateFlags(Flags.Carry, (Registers.A & 0x80) != 0);
+
+            Registers.A <<= 1;
+            Registers.UpdateNZFlags(Registers.A);
+        }
+        else
+        {
+            var address = ReadAddress(mode);
+            Registers.UpdateFlags(Flags.Carry, (Memory[address] & 0x80) != 0);
+
+            Memory[address] <<= 1;
+
+            Registers.UpdateNZFlags(Memory[address]);
+        }
+    }
+
+    /// <summary>
+    /// 0 -> 7 6 5 4 3 2 1 0 -> C
+    /// </summary>    
+    [Instruction(Mnemonic.LSR)]
+    private void LSR(AddressingMode mode)
+    {
+        if (mode == AddressingMode.Accumulator)
+        {
+            Registers.UpdateFlags(Flags.Carry, (Registers.A & 0x01) != 0);
+
+            Registers.A >>= 1;
+            Registers.UpdateNZFlags(Registers.A);
+        }
+        else
+        {
+            var address = ReadAddress(mode);
+            Registers.UpdateFlags(Flags.Carry, (Memory[address] & 0x01) != 0);
+
+            Memory[address] >>= 1;
+
+            Registers.UpdateNZFlags(Memory[address]);
+        }
+    }
+
+    /// <summary>
+    /// C <- 7 6 5 4 3 2 1 0 <- C
+    /// </summary>    
+    [Instruction(Mnemonic.ROL)]
+    private void ROL(AddressingMode mode)
+    {
+        var carry = Registers.StatusFlags.FlagToByte(Flags.Carry);
+        if (mode == AddressingMode.Accumulator)
+        {
+            Registers.UpdateFlags(Flags.Carry, (Registers.A & 0x80) != 0);
+
+            Registers.A = (byte)((Registers.A << 1) | carry);
+            Registers.UpdateNZFlags(Registers.A);
+        }
+        else
+        {
+            var address = ReadAddress(mode);
+            Registers.UpdateFlags(Flags.Carry, (Memory[address] & 0x80) != 0);
+
+            Memory[address] = (byte)((Memory[address] << 1) | carry);
+            Registers.UpdateNZFlags(Memory[address]);
+        }
+    }
+
+    /// <summary>
+    /// C -> 7 6 5 4 3 2 1 0 -> C
+    /// </summary>    
+    [Instruction(Mnemonic.ROR)]
+    private void ROR(AddressingMode mode)
+    {
+        var carry = Registers.StatusFlags.FlagToByte(Flags.Carry);
+        if (mode == AddressingMode.Accumulator)
+        {
+            Registers.UpdateFlags(Flags.Carry, (Registers.A & 0x01) != 0);
+
+            Registers.A = (byte)((Registers.A >> 1) | (carry << 7));
+            Registers.UpdateNZFlags(Registers.A);
+        }
+        else
+        {
+            var address = ReadAddress(mode);
+            Registers.UpdateFlags(Flags.Carry, (Memory[address] & 0x01) != 0);
+
+            Memory[address] = (byte)((Memory[address] >> 1) | (carry << 7));
+            Registers.UpdateNZFlags(Memory[address]);
+        }
+    }
+
+    #endregion
+
+    #region Increments / Decrements
+
+    /// <summary>
+    /// Increments
+    /// </summary>
+    [Instruction(Mnemonic.INC)]
+    private void INC(AddressingMode mode)
+    {
+        if (mode == AddressingMode.Accumulator)
+        {
+            Registers.A++;
+            Registers.UpdateNZFlags(Registers.A);
+
+        }
+        else
+        {
+            var address = ReadAddress(mode);
+
+            Memory[address]++;            
+            Registers.UpdateNZFlags(Memory[address]);
+        }
+    }
+
+    /// <summary>
+    /// X + 1 -> X
+    /// </summary>
+    [Instruction(Mnemonic.INX)]
+    private void INX(AddressingMode mode)
+    {
+        Registers.X++;
+        Registers.UpdateNZFlags(Registers.X);
+    }
+
+    /// <summary>
+    /// Y + 1 -> Y
+    /// </summary>
+    [Instruction(Mnemonic.INY)]
+    private void INY(AddressingMode mode)
+    {
+        Registers.Y++;
+        Registers.UpdateNZFlags(Registers.Y);
+    }
+
+    /// <summary>
+    /// Decrement
+    /// </summary>
+    [Instruction(Mnemonic.DEC)]
+    private void DEC(AddressingMode mode)
+    {
+        if (mode == AddressingMode.Accumulator)
+        {
+            Registers.A--;
+            Registers.UpdateNZFlags(Registers.A);
+
+        }
+        else
+        {
+            var address = ReadAddress(mode);
+
+            Memory[address]--;
+            Registers.UpdateNZFlags(Memory[address]);
+        }
+    }
+
+    /// <summary>
+    /// X + 1 -> X
+    /// </summary>
+    [Instruction(Mnemonic.DEX)]
+    private void DEX(AddressingMode mode)
+    {
+        Registers.X--;
+        Registers.UpdateNZFlags(Registers.X);
+    }
+
+    /// <summary>
+    /// Y + 1 -> Y
+    /// </summary>
+    [Instruction(Mnemonic.DEY)]
+    private void DEY(AddressingMode mode)
+    {
+        Registers.Y--;
+        Registers.UpdateNZFlags(Registers.Y);
+    }
+
+    #endregion
+
+    #region Loads    
 
     /// <summary>
     /// M -> A
     /// </summary>
+    [Instruction(Mnemonic.LDA)]
     private void LDA(AddressingMode mode)
     {
         var address = ReadAddress(mode);
@@ -127,6 +292,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// M -> X
     /// </summary>
+    [Instruction(Mnemonic.LDX)]
     private void LDX(AddressingMode mode)
     {
         var address = ReadAddress(mode);
@@ -138,6 +304,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// M -> Y
     /// </summary>
+    [Instruction(Mnemonic.LDY)]
     private void LDY(AddressingMode mode)
     {
         var address = ReadAddress(mode);
@@ -153,6 +320,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// A -> M
     /// </summary>    
+    [Instruction(Mnemonic.STA)]
     private void STA(AddressingMode mode)
     {
         var address = ReadAddress(mode);
@@ -163,6 +331,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// X -> M
     /// </summary>    
+    [Instruction(Mnemonic.STX)]
     private void STX(AddressingMode mode)
     {
         var address = ReadAddress(mode);
@@ -173,6 +342,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// Y -> M
     /// </summary>    
+    [Instruction(Mnemonic.STY)]
     private void STY(AddressingMode mode)
     {
         var address = ReadAddress(mode);
@@ -183,6 +353,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// 00 -> M
     /// </summary>    
+    [Instruction(Mnemonic.STZ)]
     private void STZ(AddressingMode mode)
     {
         var address = ReadAddress(mode);
@@ -192,11 +363,23 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     #endregion
 
+    #region Transfers
+
+    //TAX,
+    //TAY,
+    //TXA,
+    //TYA,
+    //TSX,
+    //TXS,
+
+    #endregion
+
     #region Flags
 
     /// <summary>
     /// 0 -> C
     /// </summary>
+    [Instruction(Mnemonic.CLC)]
     private void CLC(AddressingMode mode)
     {
         Registers.UpdateFlags(Flags.Carry, false);
@@ -205,6 +388,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// 1 -> C
     /// </summary>
+    [Instruction(Mnemonic.SEC)]
     private void SEC(AddressingMode mode)
     {
         Registers.UpdateFlags(Flags.Carry, true);
@@ -213,6 +397,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// 0 -> I
     /// </summary>
+    [Instruction(Mnemonic.CLI)]
     private void CLI(AddressingMode mode)
     {
         Registers.UpdateFlags(Flags.Interrupt, false);
@@ -221,6 +406,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// 1 -> I
     /// </summary>
+    [Instruction(Mnemonic.SEI)]
     private void SEI(AddressingMode mode)
     {
         Registers.UpdateFlags(Flags.Interrupt, true);
@@ -229,6 +415,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// 0 -> V
     /// </summary>
+    [Instruction(Mnemonic.CLV)]
     private void CLV(AddressingMode mode)
     {
         Registers.UpdateFlags(Flags.Overflow, false);
@@ -237,6 +424,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// 0 -> V
     /// </summary>
+    [Instruction(Mnemonic.CLD)]
     private void CLD(AddressingMode mode)
     {
         Registers.UpdateFlags(Flags.Decimal, false);
@@ -245,6 +433,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// 1 -> V
     /// </summary>
+    [Instruction(Mnemonic.SED)]
     private void SED(AddressingMode mode)
     {
         Registers.UpdateFlags(Flags.Decimal, true);
@@ -255,6 +444,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// No Operation
     /// </summary>
+    [Instruction(Mnemonic.NOP)]
     private void NOP(AddressingMode mode)
     {
 
@@ -273,7 +463,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         AddressingMode.ZeroPageIndexedX => ReadZeroPageXAddress(),
         AddressingMode.ZeroPageIndexedY => ReadZeroPageYAddress(),
 
-        AddressingMode.Immediate => Registers.ProgramCounter++,
+        AddressingMode.Immediate => Registers.ProgramCounter++,        
 
         _ => throw new NotSupportedException()
     };
@@ -315,4 +505,17 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     private byte ReadNext()
         => Memory[Registers.ProgramCounter++];
+
+    private void RegisterHandlers()
+    {
+        var type = GetType();
+        var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic);
+
+        var instructions = methods
+            .Select(m => (Method: m, Attribute: m.GetCustomAttribute<InstructionAttribute>()))
+            .Where(t => t.Attribute is not null);
+
+        foreach (var (method, info) in instructions)
+            _handlers.Add(info!.Mnemonic, method.CreateDelegate<Action<AddressingMode>>(this));
+    }
 }

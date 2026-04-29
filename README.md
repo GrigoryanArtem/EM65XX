@@ -11,9 +11,9 @@ An emulator for the W65C02S processor
 | Absolute Indexed with X a,x              |         ✅ |
 | Absolute Indexed with Y a,y              |         ✅ |
 | Absolute Indirect (a)                    |         ❌ |
-| Accumulator A                            |         ❌ |
+| Accumulator A                            |         ✅ |
 | Immediate #                              |         ✅ |
-| Implied i                                |         ❌ |
+| Implied i                                |         ✅ |
 | Program Counter Relative r               |         ❌ |
 | Stack s                                  |         ❌ |
 | Zero Page zp                             |         ✅ |
@@ -32,23 +32,23 @@ An emulator for the W65C02S processor
 | AND      |         ❌ |
 | ORA      |         ❌ |
 | EOR      |         ❌ |
-| ASL      |         ❌ |
-| LSR      |         ❌ |
-| ROL      |         ❌ |
-| ROR      |         ❌ |
-| INC      |         ❌ |
-| INX      |         ❌ |
-| INY      |         ❌ |
-| DEC      |         ❌ |
-| DEX      |         ❌ |
-| DEY      |         ❌ |
+| ASL      |         ✅ |
+| LSR      |         ✅ |
+| ROL      |         ✅ |
+| ROR      |         ✅ |
+| INC      |         ✅ |
+| INX      |         ✅ |
+| INY      |         ✅ |
+| DEC      |         ✅ |
+| DEX      |         ✅ |
+| DEY      |         ✅ |
 | LDA      |         ✅ |
 | LDX      |         ✅ |
 | LDY      |         ✅ |
-| STA      |         ❌ |
-| STX      |         ❌ |
-| STY      |         ❌ |
-| STZ      |         ❌ |
+| STA      |         ✅ |
+| STX      |         ✅ |
+| STY      |         ✅ |
+| STZ      |         ✅ |
 | TAX      |         ❌ |
 | TAY      |         ❌ |
 | TXA      |         ❌ |

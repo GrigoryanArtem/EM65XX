@@ -49,6 +49,9 @@ public class Registers(IStack stack)
         set => stack.Pointer = value;
     }
 
+    public void UpdateFlags(Flags flags, byte value)
+        => StatusFlags = StatusFlags.UpdateFlags(flags, value > 0);
+
     public void UpdateFlags(Flags flags, bool value)
         => StatusFlags = StatusFlags.UpdateFlags(flags, value);
 
