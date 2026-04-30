@@ -4,7 +4,19 @@ namespace EM65XX.Core;
 
 public class Memory64K : IMemory
 {
-    private readonly byte[] _data = new byte[1 << 16];
+    private const int SIZE = 1 << 16;
+    private readonly byte[] _data;
+
+    public Memory64K()
+        => _data = new byte[SIZE];
+
+    public Memory64K(byte[] data)
+    {
+        if(data.Length != SIZE)
+            throw new ArgumentOutOfRangeException(nameof(data), $"Data must be exactly {SIZE} bytes long.");
+
+        _data = data;
+    }        
 
     public void Clear(byte value)
         => Array.Fill(_data, value);
@@ -28,5 +40,11 @@ public class Memory64K : IMemory
         => _data[(page << 8) | address] = value;
 
     public void Load(ushort offset, params byte[] data)
-        => Array.Copy(data, 0, _data, offset, data.Length);    
+        => Array.Copy(data, 0, _data, offset, data.Length);
+
+    public void Load(ushort offset, IEnumerable<byte> data)
+    {
+        foreach (var b in data)
+            _data[offset++] = b;
+    }
 }

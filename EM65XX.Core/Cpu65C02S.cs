@@ -615,7 +615,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         var value = (byte)(a - b);
 
         Registers.UpdateNZFlags(value);
-        Registers.UpdateFlags(Flags.Carry, value >= 0);
+        Registers.UpdateFlags(Flags.Carry, a >= b);
     }
 
     #endregion

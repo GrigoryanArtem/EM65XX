@@ -1,38 +1,50 @@
 ﻿using EM65XX.Core;
+using EM65XX.Terminal.Parsers;
 
-var mem = new Memory64K();
+var program = @"programs/test";
 
-mem.Clear(0xEA);
-
-mem.Load(0xFFFC, 0x00, 0x80);
-mem.Load(0x0000, 0xDD, 0x0D);
-// mem.Load(0x8000, 0x38, 0xA9, 0x2A, 0x69, 0xF1, 0x1A);
-mem.Load(0x8000, 0xA9, 0x02, 0x38, 0x6A);
+var parser = new ShortFormatParser();
+var mem = parser.Parse(program);
 
 var cpu = new Cpu65C02S(mem);
 cpu.Reset();
 
+Console.WriteLine("4618 + 3546");
+
+Console.WriteLine();
 Console.WriteLine("=== RESET STATE ===");
 PrintState();
 
 Console.WriteLine(ToDec(0x000, 2));
 
 var iteration = 0;
-while(true)
-{
-    Console.WriteLine($"=== TICK #{iteration:000} ===");    
+var close = false;
+
+while(!close)
+{    
     var instruction = InstructionsTable.Get(cpu.OpCode);
-    Console.WriteLine($"{cpu.Registers.ProgramCounter:X4} {cpu.OpCode:X2} | {instruction.Mnemonic} ({instruction.Mode})");
-    Console.WriteLine();
-
+    Console.WriteLine($"#{iteration++:000} | {cpu.Registers.ProgramCounter:X4} {cpu.OpCode:X2} | {instruction.Mnemonic} ({instruction.Mode})");
+    
     cpu.Tick();
+    
+    while (true) 
+    {
+        var key = Console.ReadKey();
+        if (key.Key == ConsoleKey.Q || key.Key == ConsoleKey.Escape)
+        {
+            close = true;
+            break;
+        }
 
-    PrintState();
+        if(key.Key == ConsoleKey.I)
+        {
+            Console.WriteLine();
+            PrintState();
+            continue;
+        }
 
-    var key = Console.ReadKey();
-
-    if (key.Key == ConsoleKey.Q || key.Key == ConsoleKey.Escape)
         break;
+    }
 }
 
 void PrintState()

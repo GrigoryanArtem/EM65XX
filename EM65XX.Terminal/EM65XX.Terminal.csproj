@@ -11,4 +11,10 @@
     <ProjectReference Include="..\EM65XX.Core\EM65XX.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="programs\test">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
