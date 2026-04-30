@@ -7,21 +7,21 @@ An emulator for the W65C02S processor
 | Mode                                     | supported |
 | ---------------------------------------- | --------: |
 | Absolute a                               |         ✅ |
-| Absolute Indexed Indirect (a,x)          |         ❌ |
+| Absolute Indexed Indirect (a,x)          |         ✅ |
 | Absolute Indexed with X a,x              |         ✅ |
 | Absolute Indexed with Y a,y              |         ✅ |
-| Absolute Indirect (a)                    |         ❌ |
+| Absolute Indirect (a)                    |         ✅ |
 | Accumulator A                            |         ✅ |
 | Immediate #                              |         ✅ |
 | Implied i                                |         ✅ |
-| Program Counter Relative r               |         ❌ |
-| Stack s                                  |         ❌ |
+| Program Counter Relative r               |         ✅ |
+| Stack s                                  |         ✅ |
 | Zero Page zp                             |         ✅ |
-| Zero Page Indexed Indirect (zp,x)        |         ❌ |
+| Zero Page Indexed Indirect (zp,x)        |         ✅ |
 | Zero Page Indexed with X zp,x            |         ✅ |
 | Zero Page Indexed with Y zp,y            |         ✅ |
-| Zero Page Indirect (zp)                  |         ❌ |
-| Zero Page Indirect Indexed with Y (zp),y |         ❌ |
+| Zero Page Indirect (zp)                  |         ✅ |
+| Zero Page Indirect Indexed with Y (zp),y |         ✅ |
 
 ## Supported operations
 
@@ -49,20 +49,20 @@ An emulator for the W65C02S processor
 | STX      |         ✅ |
 | STY      |         ✅ |
 | STZ      |         ✅ |
-| TAX      |         ❌ |
-| TAY      |         ❌ |
-| TXA      |         ❌ |
-| TYA      |         ❌ |
-| TSX      |         ❌ |
-| TXS      |         ❌ |
-| PHA      |         ❌ |
-| PHP      |         ❌ |
-| PHX      |         ❌ |
-| PHY      |         ❌ |
-| PLA      |         ❌ |
-| PLP      |         ❌ |
-| PLX      |         ❌ |
-| PLY      |         ❌ |
+| TAX      |         ✅ |
+| TAY      |         ✅ |
+| TXA      |         ✅ |
+| TYA      |         ✅ |
+| TSX      |         ✅ |
+| TXS      |         ✅ |
+| PHA      |         ✅ |
+| PHP      |         ✅ |
+| PHX      |         ✅ |
+| PHY      |         ✅ |
+| PLA      |         ✅ |
+| PLP      |         ✅ |
+| PLX      |         ✅ |
+| PLY      |         ✅ |
 | CLC      |         ✅ |
 | SEC      |         ✅ |
 | CLI      |         ✅ |
@@ -70,12 +70,12 @@ An emulator for the W65C02S processor
 | CLV      |         ✅ |
 | CLD      |         ✅ |
 | SED      |         ✅ |
-| CMP      |         ❌ |
-| CPX      |         ❌ |
-| CPY      |         ❌ |
-| BIT      |         ❌ |
-| TSB      |         ❌ |
-| TRB      |         ❌ |
+| CMP      |         ✅ |
+| CPX      |         ✅ |
+| CPY      |         ✅ |
+| BIT      |         ✅ |
+| TSB      |         ✅ |
+| TRB      |         ✅ |
 | BCC      |         ❌ |
 | BCS      |         ❌ |
 | BEQ      |         ❌ |
