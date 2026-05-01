@@ -22,6 +22,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         RegisterHandlers();
     }
 
+    public CpuState State { get; private set; }
     public Registers Registers { get; }
 
     public byte OpCode => Memory[Registers.ProgramCounter];
@@ -31,6 +32,8 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     public void Reset()
     {
+        State = CpuState.Running;
+
         Registers.UpdateFlags(Flags.Break | Flags.Interrupt, true);
         Registers.UpdateFlags(Flags.Decimal, false);
 
@@ -40,6 +43,9 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     public void Tick()
     {
+        if (State == CpuState.Stopped)
+            return;
+
         var instruction = InstructionsTable.Get(OpCode);
         Registers.ProgramCounter++;
 
@@ -50,7 +56,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     #region Arithmetic
 
     /// <summary>
-    ///  A + M + C -> A
+    /// A + M + C -> A
     /// </summary>
     [Instruction(Mnemonic.ADC)]
     private void ADC(AddressingMode mode)
@@ -644,7 +650,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
-        Memory[address] = (byte)(Registers.A | Memory[address]);        
+        Memory[address] = (byte)(Registers.A | Memory[address]);
         Registers.UpdateFlags(Flags.Zero, Memory[address] == 0);
     }
 
@@ -663,6 +669,130 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     #endregion
 
+    #region Branches
+
+    /// <summary>
+    /// Branch if C=0
+    /// </summary>    
+    [Instruction(Mnemonic.BCC)]
+    private void BCC(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        if (!Registers.StatusFlags.HasFlag(Flags.Carry))
+            Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Branch if C=1 
+    /// </summary>    
+    [Instruction(Mnemonic.BCS)]
+    private void BCS(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        if (Registers.StatusFlags.HasFlag(Flags.Carry))
+            Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Branch if Z=1 
+    /// </summary>    
+    [Instruction(Mnemonic.BEQ)]
+    private void BEQ(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        if (Registers.StatusFlags.HasFlag(Flags.Zero))
+            Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Branch if N=1
+    /// </summary>    
+    [Instruction(Mnemonic.BMI)]
+    private void BMI(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        if (!Registers.StatusFlags.HasFlag(Flags.Negative))
+            Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Branch if Z=0 
+    /// </summary>    
+    [Instruction(Mnemonic.BNE)]
+    private void BNE(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        if (Registers.StatusFlags.HasFlag(Flags.Negative))
+            Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Branch if N=0
+    /// </summary>    
+    [Instruction(Mnemonic.BPL)]
+    private void BPL(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        if (Registers.StatusFlags.HasFlag(Flags.Negative))
+            Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Branch if V=0
+    /// </summary>    
+    [Instruction(Mnemonic.BVC)]
+    private void BVC(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        if (!Registers.StatusFlags.HasFlag(Flags.Overflow))
+            Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Branch if V=1
+    /// </summary>    
+    [Instruction(Mnemonic.BVS)]
+    private void BVS(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        if (Registers.StatusFlags.HasFlag(Flags.Overflow))
+            Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Branch Always
+    /// </summary>    
+    [Instruction(Mnemonic.BRA)]
+    private void BRA(AddressingMode mode)
+    {
+        Registers.ProgramCounter = ReadAddress(mode);
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Jump to new location
+    /// </summary>    
+    [Instruction(Mnemonic.JMP)]
+    private void JMP(AddressingMode mode)
+    {
+        Registers.ProgramCounter = ReadAddress(mode);
+    }
+
+    #region Jumps / Calls
+
+    #endregion
+
+    #region System
+
     /// <summary>
     /// No Operation
     /// </summary>
@@ -671,6 +801,17 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
 
     }
+
+    /// <summary>
+    /// STOP (1 -> PHI2)
+    /// </summary>
+    [Instruction(Mnemonic.STP)]
+    private void STP(AddressingMode mode)
+    {
+        State = CpuState.Stopped;
+    }
+
+    #endregion
 
     #region Addresses
 
@@ -762,7 +903,10 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         => (byte)(ReadNext() + Registers.Y);
 
     private ushort ProgramCounterRelativeAddress()
-        => (ushort)(ReadNext() + Registers.ProgramCounter);
+    {
+        var offset = (sbyte)ReadNext();
+        return (ushort)(Registers.ProgramCounter + offset);
+    }
 
     private ushort ReadZeroPageIndirectAddress()
     {

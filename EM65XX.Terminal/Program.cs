@@ -1,5 +1,7 @@
 ﻿using EM65XX.Core;
+using EM65XX.Core.Enums;
 using EM65XX.Terminal.Parsers;
+using System.Diagnostics;
 
 var program = @"programs/test";
 
@@ -9,25 +11,21 @@ var mem = parser.Parse(program);
 var cpu = new Cpu65C02S(mem);
 cpu.Reset();
 
-Console.WriteLine("4618 + 3546");
-
 Console.WriteLine();
 Console.WriteLine("=== RESET STATE ===");
 PrintState();
 
-Console.WriteLine(ToDec(0x000, 2));
-
 var iteration = 0;
 var close = false;
 
-while(!close)
+while(cpu.State != CpuState.Stopped && !close)
 {    
     var instruction = InstructionsTable.Get(cpu.OpCode);
     Console.WriteLine($"#{iteration++:000} | {cpu.Registers.ProgramCounter:X4} {cpu.OpCode:X2} | {instruction.Mnemonic} ({instruction.Mode})");
     
     cpu.Tick();
     
-    while (true) 
+    while (false) 
     {
         var key = Console.ReadKey();
         if (key.Key == ConsoleKey.Q || key.Key == ConsoleKey.Escape)
@@ -47,14 +45,18 @@ while(!close)
     }
 }
 
+Console.WriteLine();
+Console.WriteLine($"{ToDec(0x000, 4)} + {ToDec(0x004, 4)} = {ToDec(0x0010, 4)}");
+
 void PrintState()
 {
     var registers = cpu.Registers;
 
-    Console.WriteLine($"Status: {registers.ProcessorStatus:b8}");
-    Console.WriteLine($"Reg A: {registers.A:X2}/{registers.A}");
-    Console.WriteLine($"Reg Y: {registers.Y:X2}/{registers.Y}");
-    Console.WriteLine($"Reg X: {registers.X:X2}/{registers.X}");
+    Console.WriteLine($"S: {registers.StackPointer:b8}");
+    Console.WriteLine($"P: {registers.ProcessorStatus:b8}");
+    Console.WriteLine($"A: {registers.A:X2}/{registers.A}");
+    Console.WriteLine($"Y: {registers.Y:X2}/{registers.Y}");
+    Console.WriteLine($"X: {registers.X:X2}/{registers.X}");
     Console.WriteLine();
 }
 
