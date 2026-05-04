@@ -778,6 +778,273 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     #endregion
 
+    #region Bit Branches
+
+    /// <summary>
+    /// Branch on bit 0 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR0)]
+    private void BBR0(AddressingMode mode)
+        => BB(0, false);
+    
+    /// <summary>
+    /// Branch on bit 1 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR1)]
+    private void BBR1(AddressingMode mode)
+        => BB(1, false);
+
+    /// <summary>
+    /// Branch on bit 2 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR1)]
+    private void BBR2(AddressingMode mode)
+        => BB(2, false);
+
+    /// <summary>
+    /// Branch on bit 3 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR3)]
+    private void BBR3(AddressingMode mode)
+        => BB(3, false);
+
+    /// <summary>
+    /// Branch on bit 4 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR4)]
+    private void BBR4(AddressingMode mode)
+        => BB(4, false);
+
+    /// <summary>
+    /// Branch on bit 5 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR5)]
+    private void BBR5(AddressingMode mode)
+        => BB(5, false);
+
+    /// <summary>
+    /// Branch on bit 6 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR6)]
+    private void BBR6(AddressingMode mode)
+        => BB(6, false);
+
+    /// <summary>
+    /// Branch on bit 7 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR7)]
+    private void BBR7(AddressingMode mode)
+        => BB(7, false);
+
+
+    /// <summary>
+    /// Branch on bit 0 set
+    /// </summary>    
+    [Instruction(Mnemonic.BBS0)]
+    private void BBS0(AddressingMode mode)
+        => BB(0, true);
+
+    /// <summary>
+    /// Branch on bit 1 set
+    /// </summary>    
+    [Instruction(Mnemonic.BBS1)]
+    private void BBS1(AddressingMode mode)
+        => BB(1, true);
+
+    /// <summary>
+    /// Branch on bit 2 set
+    /// </summary>    
+    [Instruction(Mnemonic.BBS1)]
+    private void BBS2(AddressingMode mode)
+        => BB(2, true);
+
+    /// <summary>
+    /// Branch on bit 3 set
+    /// </summary>    
+    [Instruction(Mnemonic.BBS3)]
+    private void BBS3(AddressingMode mode)
+        => BB(3, true);
+
+    /// <summary>
+    /// Branch on bit 4 set
+    /// </summary>    
+    [Instruction(Mnemonic.BBS4)]
+    private void BBS4(AddressingMode mode)
+        => BB(4, true);
+
+    /// <summary>
+    /// Branch on bit 5 set
+    /// </summary>    
+    [Instruction(Mnemonic.BBS5)]
+    private void BBS5(AddressingMode mode)
+        => BB(5, true);
+
+    /// <summary>
+    /// Branch on bit 6 set
+    /// </summary>    
+    [Instruction(Mnemonic.BBS6)]
+    private void BBS6(AddressingMode mode)
+        => BB(6, true);
+
+    /// <summary>
+    /// Branch on bit 7 reset
+    /// </summary>    
+    [Instruction(Mnemonic.BBR7)]
+    private void BBS7(AddressingMode mode)
+        => BB(7, true);
+
+    private void BB(int bit, bool target)
+    {
+        var address = ReadAddress(AddressingMode.ZeroPage);
+        var next = ReadAddress(AddressingMode.ProgramCounterRelative);
+
+        var value = Memory[address];
+        var set = (value & (1 << bit)) != 0;
+
+        if (set == target)
+            Registers.ProgramCounter = next;
+    }
+
+    #endregion
+
+    #region Bit Manipulation 
+
+    /// <summary>
+    /// Reset Memory Bit 0
+    /// </summary>    
+    [Instruction(Mnemonic.RMB0)]
+    private void RMB0(AddressingMode mode)
+        => RMB(0);
+
+    /// <summary>
+    /// Reset Memory Bit 0
+    /// </summary>    
+    [Instruction(Mnemonic.RMB1)]
+    private void RMB1(AddressingMode mode)
+        => RMB(1);
+
+    /// <summary>
+    /// Reset Memory Bit 2
+    /// </summary>    
+    [Instruction(Mnemonic.RMB2)]
+    private void RMB2(AddressingMode mode)
+        => RMB(2);
+
+    /// <summary>
+    /// Reset Memory Bit 3
+    /// </summary>    
+    [Instruction(Mnemonic.RMB3)]
+    private void RMB3(AddressingMode mode)
+        => RMB(3);
+
+    /// <summary>
+    /// Reset Memory Bit 4
+    /// </summary>    
+    [Instruction(Mnemonic.RMB4)]
+    private void RMB4(AddressingMode mode)
+        => RMB(4);
+
+    /// <summary>
+    /// Reset Memory Bit 5
+    /// </summary>    
+    [Instruction(Mnemonic.RMB5)]
+    private void RMB5(AddressingMode mode)
+        => RMB(5);
+
+    /// <summary>
+    /// Reset Memory Bit 6
+    /// </summary>    
+    [Instruction(Mnemonic.RMB6)]
+    private void RMB6(AddressingMode mode)
+        => RMB(6);
+
+    /// <summary>
+    /// Reset Memory Bit 7
+    /// </summary>    
+    [Instruction(Mnemonic.RMB7)]
+    private void RMB7(AddressingMode mode)
+        => RMB(7);
+
+    /// <summary>
+    /// Set Memory Bit 0
+    /// </summary>    
+    [Instruction(Mnemonic.SMB0)]
+    private void SMB0(AddressingMode mode)
+        => SMB(0);
+
+    /// <summary>
+    /// Set Memory Bit 0
+    /// </summary>    
+    [Instruction(Mnemonic.SMB1)]
+    private void SMB1(AddressingMode mode)
+        => SMB(1);
+
+    /// <summary>
+    /// Set Memory Bit 2
+    /// </summary>    
+    [Instruction(Mnemonic.SMB2)]
+    private void SMB2(AddressingMode mode)
+        => SMB(2);
+
+    /// <summary>
+    /// Set Memory Bit 3
+    /// </summary>    
+    [Instruction(Mnemonic.SMB3)]
+    private void SMB3(AddressingMode mode)
+        => SMB(3);
+
+    /// <summary>
+    /// Set Memory Bit 4
+    /// </summary>    
+    [Instruction(Mnemonic.SMB4)]
+    private void SMB4(AddressingMode mode)
+        => SMB(4);
+
+    /// <summary>
+    /// Set Memory Bit 5
+    /// </summary>    
+    [Instruction(Mnemonic.SMB5)]
+    private void SMB5(AddressingMode mode)
+        => SMB(5);
+
+    /// <summary>
+    /// Set Memory Bit 6
+    /// </summary>    
+    [Instruction(Mnemonic.SMB6)]
+    private void SMB6(AddressingMode mode)
+        => SMB(6);
+
+    /// <summary>
+    /// Set Memory Bit 7
+    /// </summary>    
+    [Instruction(Mnemonic.SMB7)]
+    private void SMB7(AddressingMode mode)
+        => SMB(7);
+
+    private void RMB(int bit)
+        => MB(bit, false);
+
+    private void SMB(int bit)
+        => MB(bit, true);
+
+    private void MB(int bit, bool value)
+    {
+        var address = ReadAddress(AddressingMode.ZeroPage);
+
+        if (value)
+        {
+            Memory[address] |= (byte)(1 << bit);
+        }
+        else
+        {
+            Memory[address] &= (byte)~(1 << bit);
+        }
+    }
+
+    #endregion
+
+    #region Jumps / Calls
+
     /// <summary>
     /// Jump to new location
     /// </summary>    
@@ -786,8 +1053,6 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         Registers.ProgramCounter = ReadAddress(mode);
     }
-
-    #region Jumps / Calls
 
     #endregion
 
@@ -932,15 +1197,14 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     private ushort ReadZeroPageIndirectIndexedYAddress()
     {
-        var lo = ReadNext();
-        var address = ToAddress((byte)(lo), 0x00);
+        var zp = ReadNext();
 
-        address += Registers.Y;
+        var lo = Memory[zp];
+        var hi = Memory[(byte)(zp + 1)];
 
-        var refLo = Memory[address];
-        var refHi = Memory[(ushort)(address + 1)];
+        var @base = ToAddress(lo, hi);
 
-        return ToAddress(refLo, refHi);
+        return (ushort)(@base + Registers.Y);
     }
 
     #endregion
