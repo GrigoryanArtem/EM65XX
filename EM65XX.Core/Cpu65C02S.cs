@@ -87,10 +87,53 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         Registers.A = byteValue;
     }
 
+    /// <summary>
+    /// A - M - (~C) -> A
+    /// </summary>
     [Instruction(Mnemonic.SBC)]
     private void SBC(AddressingMode mode)
     {
         throw new NotImplementedException("SBC is not implemented yet");
+    }
+
+    #endregion
+
+    #region Logic
+
+    /// <summary>
+    /// A ^ M -> A
+    /// </summary>
+    [Instruction(Mnemonic.AND)]
+    private void AND(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        Registers.A = (byte)(Registers.A & Memory[address]);
+        Registers.UpdateNZFlags(Registers.A);
+    }
+
+    /// <summary>
+    /// A V M -> A
+    /// </summary>
+    [Instruction(Mnemonic.ORA)]
+    private void ORA(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        Registers.A = (byte)(Registers.A | Memory[address]);
+        Registers.UpdateNZFlags(Registers.A);
+    }
+
+    /// <summary>
+    /// A v M -> A
+    /// </summary>
+    [Instruction(Mnemonic.EOR)]
+    private void EOR(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        Registers.A = (byte)(Registers.A ^ Memory[address]);
+        Registers.UpdateNZFlags(Registers.A);
     }
 
     #endregion
