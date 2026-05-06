@@ -3,7 +3,7 @@ using EM65XX.Core.Enums;
 using EM65XX.Terminal.Parsers;
 using System.Diagnostics;
 
-var program = @"programs/test";
+var program = @"programs/add_decimal";
 
 var parser = new ShortFormatParser();
 var mem = parser.Parse(program);
@@ -25,7 +25,7 @@ while(cpu.State != CpuState.Stopped && !close)
     
     cpu.Tick();
     
-    while (false) 
+    while (true) 
     {
         var key = Console.ReadKey();
         if (key.Key == ConsoleKey.Q || key.Key == ConsoleKey.Escape)

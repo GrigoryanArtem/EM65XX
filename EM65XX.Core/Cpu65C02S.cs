@@ -63,28 +63,15 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
         var memValue = Memory[address];
-
-        var carry = Registers.StatusFlags.FlagToByte(Flags.Carry);
-        var value = Registers.A + memValue + carry;
-
-        Registers.UpdateFlags(Flags.Overflow,
-            (((Registers.A ^ value) & 0x80) != 0) &&
-            ((Registers.A ^ memValue) & 0x80) == 0);
-
-        var decimalMode = Registers.StatusFlags.HasFlag(Flags.Decimal);
-        if (decimalMode)
+        
+        if (Registers.StatusFlags.HasFlag(Flags.Decimal))
         {
-            throw new NotImplementedException("Decimal mode is not implemented yet");
+            AddDecimal(memValue);
         }
         else
         {
-            Registers.UpdateFlags(Flags.Carry, value > 255);
+            AddBinary(memValue);
         }
-
-        var byteValue = (byte)value;
-
-        Registers.UpdateNZFlags(byteValue);
-        Registers.A = byteValue;
     }
 
     /// <summary>
@@ -93,7 +80,55 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     [Instruction(Mnemonic.SBC)]
     private void SBC(AddressingMode mode)
     {
-        throw new NotImplementedException("SBC is not implemented yet");
+        var address = ReadAddress(mode);
+        var memValue = Memory[address];
+
+        if (Registers.StatusFlags.HasFlag(Flags.Decimal))
+        {
+            throw new NotImplementedException("Decimal SBC is not implemented yet");            
+        }
+        else
+        {
+            AddBinary((byte)~memValue);
+        }
+    }
+
+    private void AddDecimal(byte data)
+    {
+        var carry = Registers.StatusFlags.FlagToByte(Flags.Carry);
+
+        var decA = ((Registers.A >> 4) * 10) + (Registers.A & 0x0F);
+        var decData = ((data >> 4) * 10) + (data & 0x0F);
+
+        var value = decA + decData + carry;
+
+        Registers.UpdateFlags(Flags.Overflow,
+            (((decA ^ value) & 0x80) != 0) &&
+            ((decA ^ decData) & 0x80) == 0);
+
+        Registers.UpdateFlags(Flags.Carry, value > 99);
+
+        var byteValue = (byte)(((value / 10) << 4) | (value % 10));
+
+        Registers.UpdateNZFlags(byteValue);
+        Registers.A = byteValue;
+    }
+
+    private void AddBinary(byte data)
+    {
+        var carry = Registers.StatusFlags.FlagToByte(Flags.Carry);
+        var value = Registers.A + data + carry;
+
+        Registers.UpdateFlags(Flags.Overflow,
+            (((Registers.A ^ value) & 0x80) != 0) &&
+            ((Registers.A ^ data) & 0x80) == 0);
+
+        Registers.UpdateFlags(Flags.Carry, value > 255);
+
+        var byteValue = (byte)value;
+
+        Registers.UpdateNZFlags(byteValue);
+        Registers.A = byteValue;
     }
 
     #endregion
@@ -530,6 +565,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     private void PLP(AddressingMode mode)
     {
         Registers.ProcessorStatus = Stack.Pop();
+        Registers.UpdateFlags(Flags.Break, false);
     }
 
     /// <summary>
@@ -840,7 +876,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// Branch on bit 2 reset
     /// </summary>    
-    [Instruction(Mnemonic.BBR1)]
+    [Instruction(Mnemonic.BBR2)]
     private void BBR2(AddressingMode mode)
         => BB(2, false);
 
@@ -897,7 +933,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// Branch on bit 2 set
     /// </summary>    
-    [Instruction(Mnemonic.BBS1)]
+    [Instruction(Mnemonic.BBS2)]
     private void BBS2(AddressingMode mode)
         => BB(2, true);
 
@@ -932,7 +968,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     /// <summary>
     /// Branch on bit 7 reset
     /// </summary>    
-    [Instruction(Mnemonic.BBR7)]
+    [Instruction(Mnemonic.BBS7)]
     private void BBS7(AddressingMode mode)
         => BB(7, true);
 

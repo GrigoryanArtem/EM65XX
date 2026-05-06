@@ -27,7 +27,7 @@ An emulator for the W65C02S processor
 
 | mnemonic | supported | mnemonic | supported |
 | -------- | --------: | -------- | --------: |
-| ADC      |         ❌ | SBC      |         ❌ |
+| ADC      |         ✅ | SBC      |         ❌ |
 | AND      |         ✅ | ORA      |         ✅ |
 | EOR      |         ✅ | ASL      |         ✅ |
 | LSR      |         ✅ | ROL      |         ✅ |

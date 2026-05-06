@@ -259,6 +259,46 @@ public static class InstructionsTable
         // System
         _table[0xCB] = new(Mnemonic.WAI, AddressingMode.Implied);
         _table[0xDB] = new(Mnemonic.STP, AddressingMode.Implied);
+
+        // RMB0..RMB7
+        _table[0x07] = new(Mnemonic.RMB0, AddressingMode.ZeroPage);
+        _table[0x17] = new(Mnemonic.RMB1, AddressingMode.ZeroPage);
+        _table[0x27] = new(Mnemonic.RMB2, AddressingMode.ZeroPage);
+        _table[0x37] = new(Mnemonic.RMB3, AddressingMode.ZeroPage);
+        _table[0x47] = new(Mnemonic.RMB4, AddressingMode.ZeroPage);
+        _table[0x57] = new(Mnemonic.RMB5, AddressingMode.ZeroPage);
+        _table[0x67] = new(Mnemonic.RMB6, AddressingMode.ZeroPage);
+        _table[0x77] = new(Mnemonic.RMB7, AddressingMode.ZeroPage);
+
+        // SMB0..SMB7
+        _table[0x87] = new(Mnemonic.SMB0, AddressingMode.ZeroPage);
+        _table[0x97] = new(Mnemonic.SMB1, AddressingMode.ZeroPage);
+        _table[0xA7] = new(Mnemonic.SMB2, AddressingMode.ZeroPage);
+        _table[0xB7] = new(Mnemonic.SMB3, AddressingMode.ZeroPage);
+        _table[0xC7] = new(Mnemonic.SMB4, AddressingMode.ZeroPage);
+        _table[0xD7] = new(Mnemonic.SMB5, AddressingMode.ZeroPage);
+        _table[0xE7] = new(Mnemonic.SMB6, AddressingMode.ZeroPage);
+        _table[0xF7] = new(Mnemonic.SMB7, AddressingMode.ZeroPage);
+
+        // BBR0..BBR7
+        _table[0x0F] = new(Mnemonic.BBR0, AddressingMode.ProgramCounterRelative);
+        _table[0x1F] = new(Mnemonic.BBR1, AddressingMode.ProgramCounterRelative);
+        _table[0x2F] = new(Mnemonic.BBR2, AddressingMode.ProgramCounterRelative);
+        _table[0x3F] = new(Mnemonic.BBR3, AddressingMode.ProgramCounterRelative);
+        _table[0x4F] = new(Mnemonic.BBR4, AddressingMode.ProgramCounterRelative);
+        _table[0x5F] = new(Mnemonic.BBR5, AddressingMode.ProgramCounterRelative);
+        _table[0x6F] = new(Mnemonic.BBR6, AddressingMode.ProgramCounterRelative);
+        _table[0x7F] = new(Mnemonic.BBR7, AddressingMode.ProgramCounterRelative);
+
+        // BBS0..BBS7
+        _table[0x8F] = new(Mnemonic.BBS0, AddressingMode.ProgramCounterRelative);
+        _table[0x9F] = new(Mnemonic.BBS1, AddressingMode.ProgramCounterRelative);
+        _table[0xAF] = new(Mnemonic.BBS2, AddressingMode.ProgramCounterRelative);
+        _table[0xBF] = new(Mnemonic.BBS3, AddressingMode.ProgramCounterRelative);
+        _table[0xCF] = new(Mnemonic.BBS4, AddressingMode.ProgramCounterRelative);
+        _table[0xDF] = new(Mnemonic.BBS5, AddressingMode.ProgramCounterRelative);
+        _table[0xEF] = new(Mnemonic.BBS6, AddressingMode.ProgramCounterRelative);
+        _table[0xFF] = new(Mnemonic.BBS7, AddressingMode.ProgramCounterRelative);
     }
 
     public static Instruction Get(byte opCode)

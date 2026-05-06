@@ -13,5 +13,5 @@ public class PageStack(IMemory memory, byte page) : IStack
         => memory.Write(page, Pointer--, value);
 
     public byte Pop()
-        => memory.Read(page, Pointer++);
+        => memory.Read(page, ++Pointer);
 }

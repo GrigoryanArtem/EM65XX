@@ -9,4 +9,5 @@
     <Project Path="EM65XX.Core/EM65XX.Core.csproj" />
     <Project Path="EM65XX.Terminal/EM65XX.Terminal.csproj" />
   </Folder>
+  <Project Path="EM65XX.SingleStepTests.Runner/EM65XX.SingleStepTests.Runner.csproj" Id="761ba5be-0ca8-46ce-a2f0-d4167c79a53e" />
 </Solution>

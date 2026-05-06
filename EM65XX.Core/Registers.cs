@@ -33,7 +33,11 @@ public class Registers(IStack stack)
     /// <summary>
     /// Status Flags of Register P
     /// </summary>
-    public Flags StatusFlags { get; set; }
+    public Flags StatusFlags 
+    {
+        get; 
+        set => field  = value | Flags.Unused; 
+    }
 
     /// <summary>
     /// Program Counter <b>PC</b>
@@ -57,7 +61,7 @@ public class Registers(IStack stack)
 
     public void UpdateNZFlags(byte value)
     {
-        UpdateFlags(Flags.Negative, value > 0x80);
+        UpdateFlags(Flags.Negative, value >= 0x80);
         UpdateFlags(Flags.Zero, value == 0);
     }
     

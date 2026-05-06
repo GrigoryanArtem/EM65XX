@@ -11,13 +11,4 @@
     <ProjectReference Include="..\EM65XX.Core\EM65XX.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="programs\add_decimal">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="programs\test">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
