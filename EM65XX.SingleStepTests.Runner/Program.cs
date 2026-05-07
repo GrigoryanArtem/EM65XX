@@ -1,6 +1,7 @@
 ﻿using EM65XX.Core;
 using EM65XX.Core.Abstraction;
 using EM65XX.SingleStepTests.Runner.Model;
+using EM65XX.SingleStepTests.Runner.Table;
 using System.Text;
 using System.Text.Json;
 
@@ -8,9 +9,12 @@ namespace EM65XX.SingleStepTests.Runner;
 
 internal class Program
 {
+    private static readonly char[] HEX = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+
     static void Main(string[] args)
     {
-        var files = Directory.GetFiles(@"", "a1.json");
+        var files = Directory.GetFiles(@"", "*.json");
+        Dictionary<string, double> results = [];
 
         var dirName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-ffff");
 
@@ -98,11 +102,52 @@ internal class Program
             Console.WriteLine($"{localStatus} {name} {localPercentage,6:f2}%");
 
             File.WriteAllText(Path.Combine(dirName, $"{name}"), sb.ToString());
+
+            results.Add(name, localPercentage);
         }
 
         var percentage = (double)passed / total * 100.0;
         Console.WriteLine();
         Console.WriteLine($"{passed}/{total} ({percentage:f2}%) tests passed.");
+
+
+
+        var tb = TableBuilder.Create(TableOptions.Header);
+        tb.SetVSeparator(" ");
+        tb.AddColumn(new() { Header = "", Align = Align.Left, Width = 2 });
+        foreach (var symbol in HEX)
+            tb.AddColumn(new() { Header = symbol.ToString().ToUpperInvariant(), Align = Align.Right, Width = 5 });        
+
+        var buffer = new object?[HEX.Length + 1];
+        var nameBuffer = new object?[HEX.Length + 1];
+        foreach (var f in HEX)
+        {
+
+            nameBuffer[0] = f.ToString().ToUpperInvariant();
+
+            foreach (var (i, s) in HEX.Index())
+            {
+                var code = new string([f, s]);
+
+                if(results.TryGetValue(code, out var value) && value < 100.0)
+                {
+                    var instr = InstructionsTable.Get(Convert.ToByte(code, 16));
+
+                    nameBuffer[i + 1] = instr.Mnemonic.ToString();
+                    buffer[i + 1] = value.ToString("f1");
+                }
+                else
+                {
+                    nameBuffer[i + 1] = null!;
+                    buffer[i + 1] = null!;
+                }                 
+            }
+
+            tb.AddRow(nameBuffer);
+            tb.AddRow(buffer);
+        }
+
+        Console.WriteLine(tb.Build());
     }
 
     private static bool CompareStates(StringBuilder sb, State expected, Cpu65C02S actual)

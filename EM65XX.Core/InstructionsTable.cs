@@ -299,6 +299,24 @@ public static class InstructionsTable
         _table[0xDF] = new(Mnemonic.BBS5, AddressingMode.ProgramCounterRelative);
         _table[0xEF] = new(Mnemonic.BBS6, AddressingMode.ProgramCounterRelative);
         _table[0xFF] = new(Mnemonic.BBS7, AddressingMode.ProgramCounterRelative);
+
+        // Illegal opcodes                      
+        _table[0x02] = new(Mnemonic.NOP, AddressingMode.Immediate);
+        _table[0x22] = new(Mnemonic.NOP, AddressingMode.Immediate);
+        _table[0x42] = new(Mnemonic.NOP, AddressingMode.Immediate);
+        _table[0x62] = new(Mnemonic.NOP, AddressingMode.Immediate);
+        _table[0x82] = new(Mnemonic.NOP, AddressingMode.Immediate);        
+        _table[0xC2] = new(Mnemonic.NOP, AddressingMode.Immediate);
+        _table[0xE2] = new(Mnemonic.NOP, AddressingMode.Immediate);
+
+        _table[0x44] = new(Mnemonic.NOP, AddressingMode.ZeroPage);
+        _table[0x54] = new(Mnemonic.NOP, AddressingMode.ZeroPageIndexedX);
+        _table[0xD4] = new(Mnemonic.NOP, AddressingMode.ZeroPageIndexedX);
+        _table[0xF4] = new(Mnemonic.NOP, AddressingMode.ZeroPageIndexedX);
+
+        _table[0x5C] = new(Mnemonic.NOP, AddressingMode.AbsoluteIndexedX);
+        _table[0xDC] = new(Mnemonic.NOP, AddressingMode.Absolute);
+        _table[0xFC] = new(Mnemonic.NOP, AddressingMode.Absolute);                
     }
 
     public static Instruction Get(byte opCode)

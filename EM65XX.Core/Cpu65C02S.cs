@@ -85,12 +85,33 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
         if (Registers.StatusFlags.HasFlag(Flags.Decimal))
         {
-            throw new NotImplementedException("Decimal SBC is not implemented yet");            
+            SubDecimal(memValue);            
         }
         else
         {
             AddBinary((byte)~memValue);
         }
+    }
+
+    private void SubDecimal(byte data)
+    {
+        bool carry = true;      
+        byte lo = (byte)((Registers.A & 0x0F) - (data & 0x0F) - (Registers.StatusFlags.HasFlag(Flags.Carry) ? 0 : 1));
+        byte hi = (byte)((Registers.A & 0xF0) - (data & 0xF0));
+
+        if ((byte)(lo & 0x80) == 0x80)
+        {
+            lo = (byte)(lo + 0x0A);
+            hi -= 0x10;
+        }
+        if (hi > 0x90)
+        {
+            hi = (byte)(hi + 0xA0);
+            carry = false;
+        }
+
+        Registers.A = (byte)(hi + lo);
+        Registers.UpdateFlags(Flags.Carry, carry);
     }
 
     private void AddDecimal(byte data)
@@ -716,8 +737,12 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         var address = ReadAddress(mode);
         var value = Memory[address];
 
-        Registers.UpdateFlags(Flags.Negative, (value & 0x80) == 0x80);
-        Registers.UpdateFlags(Flags.Overflow, (value & 0x40) == 0x40);
+        if (mode != AddressingMode.Immediate)
+        {
+            Registers.UpdateFlags(Flags.Negative, (value & 0x80) == 0x80);
+            Registers.UpdateFlags(Flags.Overflow, (value & 0x40) == 0x40);
+        }
+
         Registers.UpdateFlags(Flags.Zero, (value & Registers.A) == 0);
     }
 
@@ -729,8 +754,8 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
+        Registers.UpdateFlags(Flags.Zero, (Registers.A & Memory[address]) == 0);
         Memory[address] = (byte)(Registers.A | Memory[address]);
-        Registers.UpdateFlags(Flags.Zero, Memory[address] == 0);
     }
 
     /// <summary>
@@ -741,8 +766,8 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
+        Registers.UpdateFlags(Flags.Zero, (Registers.A & Memory[address]) == 0);
         Memory[address] = (byte)(~Registers.A & Memory[address]);
-        Registers.UpdateFlags(Flags.Zero, Memory[address] == 0);
     }
 
 
@@ -794,7 +819,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
-        if (!Registers.StatusFlags.HasFlag(Flags.Negative))
+        if (Registers.StatusFlags.HasFlag(Flags.Negative))
             Registers.ProgramCounter = address;
     }
 
@@ -806,7 +831,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
-        if (Registers.StatusFlags.HasFlag(Flags.Negative))
+        if (!Registers.StatusFlags.HasFlag(Flags.Zero))
             Registers.ProgramCounter = address;
     }
 
@@ -818,7 +843,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
 
-        if (Registers.StatusFlags.HasFlag(Flags.Negative))
+        if (!Registers.StatusFlags.HasFlag(Flags.Negative))
             Registers.ProgramCounter = address;
     }
 
@@ -1143,7 +1168,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     [Instruction(Mnemonic.NOP)]
     private void NOP(AddressingMode mode)
     {
-
+        var address = ReadAddress(mode);
     }
 
     /// <summary>
@@ -1183,6 +1208,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         AddressingMode.ZeroPageIndirectIndexedY => ReadZeroPageIndirectIndexedYAddress(),
 
         AddressingMode.Immediate => Registers.ProgramCounter++,
+        AddressingMode.Implied => Registers.ProgramCounter,
 
         _ => throw new NotSupportedException()
     };
@@ -1258,7 +1284,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         var address = ToAddress(lo, 0x00);
 
         var refLo = Memory[address];
-        var refHi = Memory[(ushort)(address + 1)];
+        var refHi = Memory[(byte)(address + 1)];
 
         return ToAddress(refLo, refHi);
     }
@@ -1269,7 +1295,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         var address = ToAddress((byte)(lo + Registers.X), 0x00);
 
         var refLo = Memory[address];
-        var refHi = Memory[(ushort)(address + 1)];
+        var refHi = Memory[(byte)(address + 1)];
 
         return ToAddress(refLo, refHi);
     }
