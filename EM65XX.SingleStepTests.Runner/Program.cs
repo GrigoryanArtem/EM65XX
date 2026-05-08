@@ -1,29 +1,34 @@
-﻿using EM65XX.Core;
+﻿using CommandLine;
+using EM65XX.Core;
 using EM65XX.Core.Abstraction;
+using EM65XX.SingleStepTests.Runner.Abstractions;
+using EM65XX.SingleStepTests.Runner.CommandLine;
+using EM65XX.SingleStepTests.Runner.Containers;
 using EM65XX.SingleStepTests.Runner.Model;
-using EM65XX.SingleStepTests.Runner.Table;
+using EM65XX.SingleStepTests.Runner.Utility;
 using System.Text;
-using System.Text.Json;
 
 namespace EM65XX.SingleStepTests.Runner;
 
 internal class Program
-{
-    private static readonly char[] HEX = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+{    
+    private const string DT_FORMAT = "yyyy-MM-dd_HH-mm-ss-ffff";
 
     static void Main(string[] args)
-    {
-        var files = Directory.GetFiles(@"", "*.json");
+        => Parser.Default.ParseArguments<Options>(args)
+            .WithParsed(HandleOptions)
+            .WithNotParsed(HandleParsingErrors);    
+
+    private static void HandleOptions(Options options)
+    {        
         Dictionary<string, double> results = [];
 
-        var dirName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-ffff");
-
-        Directory.CreateDirectory(dirName);
-
-        var options = new JsonSerializerOptions
+        string? outputDir = null; 
+        if (options.Output is not null)
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+            outputDir = Path.Combine(options.Output, DateTime.Now.ToString(DT_FORMAT));
+            Directory.CreateDirectory(outputDir);
+        }
 
         var mem = new Memory64K();
         var cpu = new Cpu65C02S(mem);
@@ -31,28 +36,15 @@ internal class Program
         var total = 0;
         var passed = 0;
 
-        foreach (var file in files)
+        ITestContainer container = new FileTests(options.Directory, options.InstructionPattern);
+        foreach (var batch in container.GetTests())
         {
-            var name = Path.GetFileNameWithoutExtension(file);
-
             StringBuilder sb = new StringBuilder();
-            TestData[] tests = [];
 
-            try
-            {
-                var json = File.ReadAllText(file);
-                tests = JsonSerializer.Deserialize<TestData[]>(json, options);
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Failed to read or parse {file}: {ex.Message}");
-                continue;
-            }
-
-            total += tests.Length;
+            total += batch.Count;
             var localPassed = 0;
 
-            foreach (var test in tests)
+            foreach (var test in batch.Tests)
             {
                 bool success = false;
 
@@ -95,97 +87,73 @@ internal class Program
             }
 
 
-            var localStatus = localPassed == tests.Length ? "[ OK ]" : $"[FAIL]";
-            
+            var localStatus = localPassed == batch.Count ? "[ OK ]" : $"[FAIL]";
 
-            var localPercentage = (double)localPassed/ tests.Length * 100.0;
-            Console.WriteLine($"{localStatus} {name} {localPercentage,6:f2}%");
 
-            File.WriteAllText(Path.Combine(dirName, $"{name}"), sb.ToString());
+            var localPercentage = (double)localPassed / batch.Count * 100.0;
+            Console.WriteLine($"{localStatus} {batch.Name} {localPercentage,6:f2}%");
 
-            results.Add(name, localPercentage);
+            if (outputDir is not null)
+            {
+                File.WriteAllText(Path.Combine(outputDir, $"{batch.Name}"), sb.ToString());
+            }
+
+            results.Add(batch.Name, localPercentage);
         }
 
         var percentage = (double)passed / total * 100.0;
         Console.WriteLine();
         Console.WriteLine($"{passed}/{total} ({percentage:f2}%) tests passed.");
 
-
-
-        var tb = TableBuilder.Create(TableOptions.Header);
-        tb.SetVSeparator(" ");
-        tb.AddColumn(new() { Header = "", Align = Align.Left, Width = 2 });
-        foreach (var symbol in HEX)
-            tb.AddColumn(new() { Header = symbol.ToString().ToUpperInvariant(), Align = Align.Right, Width = 5 });        
-
-        var buffer = new object?[HEX.Length + 1];
-        var nameBuffer = new object?[HEX.Length + 1];
-        foreach (var f in HEX)
+        if (options.Table)
         {
-
-            nameBuffer[0] = f.ToString().ToUpperInvariant();
-
-            foreach (var (i, s) in HEX.Index())
-            {
-                var code = new string([f, s]);
-
-                if(results.TryGetValue(code, out var value) && value < 100.0)
-                {
-                    var instr = InstructionsTable.Get(Convert.ToByte(code, 16));
-
-                    nameBuffer[i + 1] = instr.Mnemonic.ToString();
-                    buffer[i + 1] = value.ToString("f1");
-                }
-                else
-                {
-                    nameBuffer[i + 1] = null!;
-                    buffer[i + 1] = null!;
-                }                 
-            }
-
-            tb.AddRow(nameBuffer);
-            tb.AddRow(buffer);
+            Console.WriteLine();
+            Console.WriteLine(TestResultTable.CreateTable(results));
         }
+    }
 
-        Console.WriteLine(tb.Build());
+    private static void HandleParsingErrors(IEnumerable<Error> errors)
+    {
+        Console.Error.WriteLine("Failed to parse command line arguments.");
+        Environment.Exit(1);
     }
 
     private static bool CompareStates(StringBuilder sb, State expected, Cpu65C02S actual)
     {
         if (expected.PC != actual.Registers.ProgramCounter)
         {
-           sb.AppendLine($"\tPC mismatch: expected {expected.PC:X4}, actual {actual.Registers.ProgramCounter:X4}");
+            sb.AppendLine($"\tPC mismatch: expected {expected.PC:X4}, actual {actual.Registers.ProgramCounter:X4}");
             return false;
 
         }
 
         if (expected.S != actual.Registers.StackPointer)
         {
-           sb.AppendLine($"\tS mismatch: expected {expected.S:X2}, actual {actual.Registers.StackPointer:X2}");
+            sb.AppendLine($"\tS mismatch: expected {expected.S:X2}, actual {actual.Registers.StackPointer:X2}");
             return false;
         }
 
         if (expected.A != actual.Registers.A)
         {
-           sb.AppendLine($"\tA mismatch: expected {expected.A:X2}, actual {actual.Registers.A:X2}");
+            sb.AppendLine($"\tA mismatch: expected {expected.A:X2}, actual {actual.Registers.A:X2}");
             return false;
         }
 
         if (expected.X != actual.Registers.X)
         {
-           sb.AppendLine($"\tX mismatch: expected {expected.X:X2}, actual {actual.Registers.X:X2}");
+            sb.AppendLine($"\tX mismatch: expected {expected.X:X2}, actual {actual.Registers.X:X2}");
             return false;
         }
 
         if (expected.Y != actual.Registers.Y)
         {
-           sb.AppendLine($"\tY mismatch: expected {expected.Y:X2}, actual {actual.Registers.Y:X2}");
+            sb.AppendLine($"\tY mismatch: expected {expected.Y:X2}, actual {actual.Registers.Y:X2}");
             return false;
         }
 
         if (expected.P != actual.Registers.ProcessorStatus)
         {
-           sb.AppendLine($"\tP mismatch: expected {expected.P:X2}, actual {actual.Registers.ProcessorStatus:X2}");
+            sb.AppendLine($"\tP mismatch: expected {expected.P:X2}/{expected.P:B8}, actual {actual.Registers.ProcessorStatus:X2}/{actual.Registers.ProcessorStatus:B8}");
             return false;
         }
 
@@ -196,11 +164,12 @@ internal class Program
     {
         sb.AppendLine();
         sb.AppendLine($"PC {state.PC:X4}");
-        sb.AppendLine($"S  {state.S:X2}");
-        sb.AppendLine($"A  {state.A:X2}");
-        sb.AppendLine($"X  {state.X:X2}");
-        sb.AppendLine($"Y  {state.Y:X2}");
-        sb.AppendLine($"P  {state.P:X2}");
+
+        sb.AppendLine($"S  {state.S:X2} {state.S:B8}");
+        sb.AppendLine($"A  {state.A:X2} {state.A:B8}");
+        sb.AppendLine($"X  {state.X:X2} {state.X:B8}");
+        sb.AppendLine($"Y  {state.Y:X2} {state.Y:B8}");
+        sb.AppendLine($"P  {state.P:X2} {state.P:B8}");
 
         sb.AppendLine();
 
@@ -210,6 +179,7 @@ internal class Program
             var value = (byte)ramEntry[1];
             sb.AppendLine($"{address:X4} {value:X2}");
         }
+
         sb.AppendLine();
     }
 

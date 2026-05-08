@@ -4,7 +4,7 @@ using EM65XX.Core.Extensions;
 
 namespace EM65XX.Core;
 
-public class Registers(IStack stack)
+public class Registers(IStack8 stack)
 {
     /// <summary>
     /// Accumulator <b>A</b>

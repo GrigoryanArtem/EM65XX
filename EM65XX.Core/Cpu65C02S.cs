@@ -8,7 +8,17 @@ namespace EM65XX.Core;
 
 public partial class Cpu65C02S : ICentralProcessingUnit
 {
+    private readonly struct Vector(ushort low, ushort high)
+    {
+        public readonly ushort Low = low;
+        public readonly ushort High = high;
+    }
+
     private const byte STACK_PAGE = 1;
+
+    private static readonly Vector NMIB = new(0xFFFA, 0xFFFB);
+    private static readonly Vector RESB = new(0xFFFC, 0xFFFD);
+    private static readonly Vector IRQB = new(0xFFFE, 0xFFFF);
 
     private readonly Dictionary<Mnemonic, Action<AddressingMode>> _handlers = [];
 
@@ -33,12 +43,11 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     public void Reset()
     {
         State = CpuState.Running;
+       
+        Registers.UpdateFlags(Flags.Decimal | Flags.Break, false);        
+        Registers.UpdateFlags(Flags.Unused | Flags.Interrupt, true);
 
-        Registers.UpdateFlags(Flags.Break | Flags.Interrupt, true);
-        Registers.UpdateFlags(Flags.Decimal, false);
-
-        Registers.ProgramCounter = 0xFFFC;
-        Registers.ProgramCounter = ReadAddress(AddressingMode.Absolute);
+        Registers.ProgramCounter = ReadAddress(RESB);
     }
 
     public void Tick()
@@ -85,7 +94,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
         if (Registers.StatusFlags.HasFlag(Flags.Decimal))
         {
-            SubDecimal(memValue);
+            AddDecimal((byte)~memValue);
         }
         else
         {
@@ -117,22 +126,21 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     private void AddDecimal(byte data)
     {
         var carry = Registers.StatusFlags.FlagToByte(Flags.Carry);
-
-        var decA = ((Registers.A >> 4) * 10) + (Registers.A & 0x0F);
-        var decData = ((data >> 4) * 10) + (data & 0x0F);
-
-        var value = decA + decData + carry;
+        var sum = Registers.A + data + carry;
 
         Registers.UpdateFlags(Flags.Overflow,
-            (((decA ^ value) & 0x80) != 0) &&
-            ((decA ^ decData) & 0x80) == 0);
+            (~(Registers.A ^ data) & (Registers.A ^ sum) & 0x80) != 0);
 
-        Registers.UpdateFlags(Flags.Carry, value > 99);
+        if (((Registers.A & 0x0F) + (data & 0x0F) + carry) > 9)        
+            sum += 0x06;
 
-        var byteValue = (byte)(((value / 10) << 4) | (value % 10));
+        Registers.UpdateFlags(Flags.Carry, sum > 0x99);
 
-        Registers.UpdateNZFlags(byteValue);
-        Registers.A = byteValue;
+        if (sum > 0x99)
+            sum += 0x60;
+
+        Registers.A = (byte)sum;
+        Registers.UpdateNZFlags(Registers.A);
     }
 
     private void AddBinary(byte data)
@@ -359,7 +367,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     }
 
     /// <summary>
-    /// X + 1 -> X
+    /// X - 1 -> X
     /// </summary>
     [Instruction(Mnemonic.DEX)]
     private void DEX(AddressingMode mode)
@@ -659,7 +667,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     }
 
     /// <summary>
-    /// 0 -> V
+    /// 0 -> D
     /// </summary>
     [Instruction(Mnemonic.CLD)]
     private void CLD(AddressingMode mode)
@@ -668,7 +676,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     }
 
     /// <summary>
-    /// 1 -> V
+    /// 1 -> D
     /// </summary>
     [Instruction(Mnemonic.SED)]
     private void SED(AddressingMode mode)
@@ -1158,9 +1166,67 @@ public partial class Cpu65C02S : ICentralProcessingUnit
         Registers.ProgramCounter = ReadAddress(mode);
     }
 
+    /// <summary>
+    /// Jump to Subroutine
+    /// </summary>
+    [Instruction(Mnemonic.JSR)]
+    private void JSR(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+        
+        Stack.PushWord((ushort)(Registers.ProgramCounter - 1));
+        Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Return from Subroutine
+    /// </summary>
+    [Instruction(Mnemonic.RTS)]
+    private void RTS(AddressingMode mode)
+        => Registers.ProgramCounter = (ushort)(Stack.PopWord() + 1);    
+
+    /// <summary>
+    /// Return from Interrupt
+    /// </summary>
+    [Instruction(Mnemonic.RTI)]
+    private void RTI(AddressingMode mode)
+    {
+        Registers.ProcessorStatus = Stack.Pop();
+        Registers.ProgramCounter = Stack.PopWord();
+
+        Registers.UpdateFlags(Flags.Break, false);
+    }
+
     #endregion
 
     #region System
+
+
+    /// <summary>
+    /// Break
+    /// </summary>
+    [Instruction(Mnemonic.BRK)]
+    private void BRK(AddressingMode mode)
+    {
+        var store = Registers.ProgramCounter + 1;
+
+        var lo = (byte)(store & 0xFF);
+        var hi = (byte)((store >> 8) & 0xFF);
+
+        Stack.Push(hi);
+        Stack.Push(lo);
+
+        var flags = Registers.StatusFlags | Flags.Break;
+
+        Stack.Push((byte)flags);
+
+        Registers.UpdateFlags(Flags.Interrupt, true);
+        Registers.UpdateFlags(Flags.Decimal, false);
+
+        var address = ReadAddress(IRQB);
+
+        Registers.ProgramCounter = address;
+    }
 
     /// <summary>
     /// No Operation
@@ -1178,38 +1244,6 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     private void STP(AddressingMode mode)
     {
         State = CpuState.Stopped;
-    }
-
-    /// <summary>
-    /// Jump to Subroutine
-    /// </summary>
-    [Instruction(Mnemonic.JSR)]
-    private void JSR(AddressingMode mode)
-    {
-        var address = ReadAddress(mode);
-
-        var store = Registers.ProgramCounter - 1;
-
-        var lo = (byte)(store & 0xFF);
-        var hi = (byte)((store >> 8) & 0xFF);
-
-        Stack.Push(lo);
-        Stack.Push(hi);
-
-        Registers.ProgramCounter = address;
-    }
-
-    /// <summary>
-    /// Return from Subroutine
-    /// </summary>
-    [Instruction(Mnemonic.RTS)]
-    private void RTS(AddressingMode mode)
-    {
-        var lo = Stack.Pop();
-        var hi = Stack.Pop();
-
-        var address = ToAddress(lo, hi);
-        Registers.ProgramCounter = (ushort)(address + 1);
     }
 
     #endregion
@@ -1345,6 +1379,9 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     }
 
     #endregion
+
+    private ushort ReadAddress(Vector vec)
+        => (ushort)(Memory[vec.Low] | Memory[vec.High] << 8);
 
     private static ushort ToAddress(byte lo, byte hi)
         => (ushort)(lo | hi << 8);

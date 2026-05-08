@@ -13,6 +13,6 @@ public class Options
     [Option('t', "table", Required = false, HelpText = "print table")]
     public bool Table { get; set; }
 
-    [Option('i', "instr", Required = false, HelpText = "instruction pattern")]
-    public string Instruction { get; set; }
+    [Option('i', "instr", Default = "*", Required = false, HelpText = "instruction pattern")]
+    public string InstructionPattern { get; set; }
 }

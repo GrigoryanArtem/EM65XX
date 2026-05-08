@@ -27,7 +27,7 @@ An emulator for the W65C02S processor
 
 | mnemonic | supported | mnemonic | supported |
 | -------- | --------: | -------- | --------: |
-| ADC      |         ✅ | SBC      |         ❌ |
+| ADC      |         ✅ | SBC      |         ✅ |
 | AND      |         ✅ | ORA      |         ✅ |
 | EOR      |         ✅ | ASL      |         ✅ |
 | LSR      |         ✅ | ROL      |         ✅ |
@@ -72,7 +72,7 @@ An emulator for the W65C02S processor
 | SMB2     |         ✅ | SMB3     |         ✅ |
 | SMB4     |         ✅ | SMB5     |         ✅ |
 | SMB6     |         ✅ | SMB7     |         ✅ |
-| JMP      |         ✅ | JSR      |         ❌ |
-| RTS      |         ❌ | RTI      |         ❌ |
-| BRK      |         ❌ | NOP      |         ✅ |
+| JMP      |         ✅ | JSR      |         ✅ |
+| RTS      |         ✅ | RTI      |         ✅ |
+| BRK      |         ✅ | NOP      |         ✅ |
 | WAI      |         ❌ | STP      |         ✅ |
