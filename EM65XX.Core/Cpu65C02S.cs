@@ -63,7 +63,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     {
         var address = ReadAddress(mode);
         var memValue = Memory[address];
-        
+
         if (Registers.StatusFlags.HasFlag(Flags.Decimal))
         {
             AddDecimal(memValue);
@@ -85,7 +85,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
         if (Registers.StatusFlags.HasFlag(Flags.Decimal))
         {
-            SubDecimal(memValue);            
+            SubDecimal(memValue);
         }
         else
         {
@@ -95,7 +95,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
     private void SubDecimal(byte data)
     {
-        bool carry = true;      
+        bool carry = true;
         byte lo = (byte)((Registers.A & 0x0F) - (data & 0x0F) - (Registers.StatusFlags.HasFlag(Flags.Carry) ? 0 : 1));
         byte hi = (byte)((Registers.A & 0xF0) - (data & 0xF0));
 
@@ -890,7 +890,7 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     [Instruction(Mnemonic.BBR0)]
     private void BBR0(AddressingMode mode)
         => BB(0, false);
-    
+
     /// <summary>
     /// Branch on bit 1 reset
     /// </summary>    
@@ -1178,6 +1178,38 @@ public partial class Cpu65C02S : ICentralProcessingUnit
     private void STP(AddressingMode mode)
     {
         State = CpuState.Stopped;
+    }
+
+    /// <summary>
+    /// Jump to Subroutine
+    /// </summary>
+    [Instruction(Mnemonic.JSR)]
+    private void JSR(AddressingMode mode)
+    {
+        var address = ReadAddress(mode);
+
+        var store = Registers.ProgramCounter - 1;
+
+        var lo = (byte)(store & 0xFF);
+        var hi = (byte)((store >> 8) & 0xFF);
+
+        Stack.Push(lo);
+        Stack.Push(hi);
+
+        Registers.ProgramCounter = address;
+    }
+
+    /// <summary>
+    /// Return from Subroutine
+    /// </summary>
+    [Instruction(Mnemonic.RTS)]
+    private void RTS(AddressingMode mode)
+    {
+        var lo = Stack.Pop();
+        var hi = Stack.Pop();
+
+        var address = ToAddress(lo, hi);
+        Registers.ProgramCounter = (ushort)(address + 1);
     }
 
     #endregion
