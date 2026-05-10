@@ -1,7 +1,9 @@
 ﻿namespace EM65XX.Core.Abstraction;
 
-public interface ICentralProcessingUnit
+public interface ICPU65xx
 {
+    Registers Registers { get; }
+
     void Reset();
     void Tick();
 }

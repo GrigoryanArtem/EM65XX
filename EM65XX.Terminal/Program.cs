@@ -1,7 +1,6 @@
 ﻿using EM65XX.Core;
 using EM65XX.Core.Enums;
 using EM65XX.Terminal.Parsers;
-using System.Diagnostics;
 
 var program = @"programs/add_decimal";
 

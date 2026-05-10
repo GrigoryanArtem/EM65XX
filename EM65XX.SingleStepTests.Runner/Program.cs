@@ -6,14 +6,12 @@ using EM65XX.SingleStepTests.Runner.CommandLine;
 using EM65XX.SingleStepTests.Runner.Containers;
 using EM65XX.SingleStepTests.Runner.Model;
 using EM65XX.SingleStepTests.Runner.Utility;
-using System.Text;
+using EM65XX.SingleStepTests.Runner.Writers;
 
 namespace EM65XX.SingleStepTests.Runner;
 
 internal class Program
-{    
-    private const string DT_FORMAT = "yyyy-MM-dd_HH-mm-ss-ffff";
-
+{        
     static void Main(string[] args)
         => Parser.Default.ParseArguments<Options>(args)
             .WithParsed(HandleOptions)
@@ -21,17 +19,10 @@ internal class Program
 
     private static void HandleOptions(Options options)
     {        
+        var writerFactory = new WriterFactory(options.Output);
+        var (cpu, mem) = ResetCpu(); 
+        
         Dictionary<string, double> results = [];
-
-        string? outputDir = null; 
-        if (options.Output is not null)
-        {
-            outputDir = Path.Combine(options.Output, DateTime.Now.ToString(DT_FORMAT));
-            Directory.CreateDirectory(outputDir);
-        }
-
-        var mem = new Memory64K();
-        var cpu = new Cpu65C02S(mem);
 
         var total = 0;
         var passed = 0;
@@ -39,7 +30,7 @@ internal class Program
         ITestContainer container = new FileTests(options.Directory, options.InstructionPattern);
         foreach (var batch in container.GetTests())
         {
-            StringBuilder sb = new StringBuilder();
+            var writer = writerFactory.CreateWriter(batch.Name);
 
             total += batch.Count;
             var localPassed = 0;
@@ -48,25 +39,23 @@ internal class Program
             {
                 bool success = false;
 
-                sb.AppendLine($"[INIT] {test.Name}");
+                writer.WriteLine($"[INIT] {test.Name}");
 
                 SetupCpu(mem, cpu, test.Initial);
 
                 try
                 {
                     cpu.Tick();
-                    success = CompareStates(sb, test.Final, cpu);
+                    success = CompareStates(writer, test.Final, cpu);
                 }
                 catch (Exception ex)
                 {
-                    sb.AppendLine("\tException during execution:");
-                    sb.AppendLine(ex.Message);
+                    writer.WriteLine("\tException during execution:");
+                    writer.WriteLine(ex.Message);
 
 
-                    sb.AppendLine("\tRESET CPU");
-
-                    mem = new Memory64K();
-                    cpu = new Cpu65C02S(mem);
+                    writer.WriteLine("\tRESET CPU");
+                    (cpu, mem) = ResetCpu();
                 }
 
                 var status = success ? "[ OK ]" : "[FAIL]";
@@ -79,11 +68,11 @@ internal class Program
 
                 if (!success)
                 {
-                    PrintState(sb, test.Initial);
+                    PrintState(writer, test.Initial);
                 }
 
-                sb.AppendLine($"{status} {test.Name}");
-                sb.AppendLine();
+                writer.WriteLine($"{status} {test.Name}");
+                writer.WriteLine();
             }
 
 
@@ -93,11 +82,7 @@ internal class Program
             var localPercentage = (double)localPassed / batch.Count * 100.0;
             Console.WriteLine($"{localStatus} {batch.Name} {localPercentage,6:f2}%");
 
-            if (outputDir is not null)
-            {
-                File.WriteAllText(Path.Combine(outputDir, $"{batch.Name}"), sb.ToString());
-            }
-
+            writer.Flush();
             results.Add(batch.Name, localPercentage);
         }
 
@@ -118,72 +103,73 @@ internal class Program
         Environment.Exit(1);
     }
 
-    private static bool CompareStates(StringBuilder sb, State expected, Cpu65C02S actual)
+    private static bool CompareStates(IWriter sb, State expected, ICPU65xx actual)
     {
+        var success = true;
+
         if (expected.PC != actual.Registers.ProgramCounter)
         {
-            sb.AppendLine($"\tPC mismatch: expected {expected.PC:X4}, actual {actual.Registers.ProgramCounter:X4}");
-            return false;
-
+            sb.WriteLine($"\tPC mismatch: expected {expected.PC:X4}, actual {actual.Registers.ProgramCounter:X4}");
+            success = false;
         }
 
         if (expected.S != actual.Registers.StackPointer)
         {
-            sb.AppendLine($"\tS mismatch: expected {expected.S:X2}, actual {actual.Registers.StackPointer:X2}");
-            return false;
+            sb.WriteLine($"\tS mismatch: expected {expected.S:X2}, actual {actual.Registers.StackPointer:X2}");
+            success = false;
         }
 
         if (expected.A != actual.Registers.A)
         {
-            sb.AppendLine($"\tA mismatch: expected {expected.A:X2}, actual {actual.Registers.A:X2}");
-            return false;
+            sb.WriteLine($"\tA mismatch: expected {expected.A:X2}, actual {actual.Registers.A:X2}");
+            success = false;
         }
 
         if (expected.X != actual.Registers.X)
         {
-            sb.AppendLine($"\tX mismatch: expected {expected.X:X2}, actual {actual.Registers.X:X2}");
-            return false;
+            sb.WriteLine($"\tX mismatch: expected {expected.X:X2}, actual {actual.Registers.X:X2}");
+            success = false;
         }
 
         if (expected.Y != actual.Registers.Y)
         {
-            sb.AppendLine($"\tY mismatch: expected {expected.Y:X2}, actual {actual.Registers.Y:X2}");
-            return false;
+            sb.WriteLine($"\tY mismatch: expected {expected.Y:X2}, actual {actual.Registers.Y:X2}");
+            success = false;
         }
 
         if (expected.P != actual.Registers.ProcessorStatus)
         {
-            sb.AppendLine($"\tP mismatch: expected {expected.P:X2}/{expected.P:B8}, actual {actual.Registers.ProcessorStatus:X2}/{actual.Registers.ProcessorStatus:B8}");
-            return false;
+            sb.WriteLine($"\tP mismatch: expected {expected.P:X2}/{expected.P:B8}, actual {actual.Registers.ProcessorStatus:X2}/{actual.Registers.ProcessorStatus:B8}");
+            success = false;
         }
 
-        return true;
+        return success;
     }
 
-    private static void PrintState(StringBuilder sb, State state)
+    private static void PrintState(IWriter writer, State state)
     {
-        sb.AppendLine();
-        sb.AppendLine($"PC {state.PC:X4}");
+        writer.WriteLine();
+        writer.WriteLine($"PC {state.PC:X4}");
 
-        sb.AppendLine($"S  {state.S:X2} {state.S:B8}");
-        sb.AppendLine($"A  {state.A:X2} {state.A:B8}");
-        sb.AppendLine($"X  {state.X:X2} {state.X:B8}");
-        sb.AppendLine($"Y  {state.Y:X2} {state.Y:B8}");
-        sb.AppendLine($"P  {state.P:X2} {state.P:B8}");
+        writer.WriteLine($"S  {state.S:X2} {state.S:B8}");
+        writer.WriteLine($"A  {state.A:X2} {state.A:B8}");
+        writer.WriteLine($"X  {state.X:X2} {state.X:B8}");
+        writer.WriteLine($"Y  {state.Y:X2} {state.Y:B8}");
+        writer.WriteLine($"P  {state.P:X2} {state.P:B8}");
 
-        sb.AppendLine();
+        writer.WriteLine();
 
         foreach (var ramEntry in state.Ram)
         {
             var address = (ushort)ramEntry[0];
             var value = (byte)ramEntry[1];
-            sb.AppendLine($"{address:X4} {value:X2}");
+            writer.WriteLine($"{address:X4} {value:X2}");
         }
 
-        sb.AppendLine();
+        writer.WriteLine();
     }
 
-    private static void SetupCpu(IMemory mem, Cpu65C02S cpu, State state)
+    private static void SetupCpu(IMemory mem, ICPU65xx cpu, State state)
     {       
         for (var i = 0; i < state.Ram.Length; i++)
         {
@@ -199,6 +185,14 @@ internal class Program
         cpu.Registers.X = (byte)state.X;
         cpu.Registers.Y = (byte)state.Y;
         cpu.Registers.ProcessorStatus = (byte)state.P;
+    }
+
+    private static (ICPU65xx cpu, IMemory mem) ResetCpu()
+    {
+        var mem = new Memory64K();
+        var cpu = new Cpu65C02S(mem);
+
+        return (cpu, mem);
     }
 }
     

@@ -26,11 +26,10 @@ public static class TestResultTable
             foreach (var (i, s) in HEX.Index())
             {
                 var code = new string([f, s]);
+                var instr = InstructionsTable.Get(Convert.ToByte(code, 16));
 
                 if (results.TryGetValue(code, out var value) && value < 100.0)
                 {
-                    var instr = InstructionsTable.Get(Convert.ToByte(code, 16));
-
                     nameBuffer[i + 1] = instr.Mnemonic.ToString();
                     buffer[i + 1] = value.ToString("f1");
                 }

@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace EM65XX.Core;
 
-public partial class Cpu65C02S : ICentralProcessingUnit
+public partial class Cpu65C02S : ICPU65xx
 {
     private readonly struct Vector(ushort low, ushort high)
     {
@@ -94,53 +94,63 @@ public partial class Cpu65C02S : ICentralProcessingUnit
 
         if (Registers.StatusFlags.HasFlag(Flags.Decimal))
         {
-            AddDecimal((byte)~memValue);
+            SubDecimal(memValue);
         }
         else
         {
-            AddBinary((byte)~memValue);
+            AddBinary((byte)(~memValue));
         }
     }
 
     private void SubDecimal(byte data)
     {
-        bool carry = true;
-        byte lo = (byte)((Registers.A & 0x0F) - (data & 0x0F) - (Registers.StatusFlags.HasFlag(Flags.Carry) ? 0 : 1));
-        byte hi = (byte)((Registers.A & 0xF0) - (data & 0xF0));
+        var a = Registers.A;        
+        var invCarry = Registers.StatusFlags.HasFlag(Flags.Carry) ? 0 : 1;
 
-        if ((byte)(lo & 0x80) == 0x80)
-        {
-            lo = (byte)(lo + 0x0A);
-            hi -= 0x10;
-        }
-        if (hi > 0x90)
-        {
-            hi = (byte)(hi + 0xA0);
-            carry = false;
-        }
+        var sub = a - data - invCarry;
+        var res = sub;
 
-        Registers.A = (byte)(hi + lo);
-        Registers.UpdateFlags(Flags.Carry, carry);
+        if (((a & 0x0F) - (data & 0x0F) - invCarry) < 0)
+            res -= 0x06;
+
+        if (sub < 0)
+            res -= 0x60;
+        
+        var subByte = (byte)(res & 0xFF);
+        
+        Registers.UpdateFlags(Flags.Carry, sub >= 0);        
+        Registers.UpdateFlags(Flags.Overflow, ((a ^ data) & (a ^ sub) & 0x80) != 0);
+        
+        Registers.A = subByte;
+        Registers.UpdateNZFlags(subByte);
     }
 
     private void AddDecimal(byte data)
     {
         var carry = Registers.StatusFlags.FlagToByte(Flags.Carry);
-        var sum = Registers.A + data + carry;
 
-        Registers.UpdateFlags(Flags.Overflow,
-            (~(Registers.A ^ data) & (Registers.A ^ sum) & 0x80) != 0);
+        var lo = (Registers.A & 0x0F) + (data & 0x0F) + carry;
+        var hi = (Registers.A >> 4) + (data >> 4);
 
-        if (((Registers.A & 0x0F) + (data & 0x0F) + carry) > 9)        
-            sum += 0x06;
+        if (lo > 9)
+        {
+            lo += 6;
+            hi++;
+        }
 
-        Registers.UpdateFlags(Flags.Carry, sum > 0x99);
+        Registers.UpdateFlags(
+            Flags.Overflow,
+            (~(Registers.A ^ data) & (Registers.A ^ ((hi << 4) | (lo & 0x0F))) & 0x80) != 0);
 
-        if (sum > 0x99)
-            sum += 0x60;
+        if (hi > 9)
+            hi += 6;
 
-        Registers.A = (byte)sum;
-        Registers.UpdateNZFlags(Registers.A);
+        Registers.UpdateFlags(Flags.Carry, hi > 0x0F);
+
+        var sumByte = (byte)((hi << 4) | (lo & 0x0F));
+
+        Registers.A = sumByte;
+        Registers.UpdateNZFlags(sumByte);
     }
 
     private void AddBinary(byte data)
