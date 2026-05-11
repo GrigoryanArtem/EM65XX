@@ -2,9 +2,8 @@
 using EM65XX.Core.Enums;
 using EM65XX.Terminal.Parsers;
 
-var program = @"programs/add_decimal";
-
-var parser = new ShortFormatParser();
+var program = args[0];
+var parser = new FullDumpParser();
 var mem = parser.Parse(program);
 
 var cpu = new Cpu65C02S(mem);
@@ -24,7 +23,7 @@ while(cpu.State != CpuState.Stopped && !close)
     
     cpu.Tick();
     
-    while (true) 
+    while (false) 
     {
         var key = Console.ReadKey();
         if (key.Key == ConsoleKey.Q || key.Key == ConsoleKey.Escape)
@@ -45,7 +44,7 @@ while(cpu.State != CpuState.Stopped && !close)
 }
 
 Console.WriteLine();
-Console.WriteLine($"{ToDec(0x000, 4)} + {ToDec(0x004, 4)} = {ToDec(0x0010, 4)}");
+Console.WriteLine($"{ToDec(0x000, 4)} + {ToDec(0x004, 4)} = {ToDec(0x0008, 4)}");
 
 void PrintState()
 {
