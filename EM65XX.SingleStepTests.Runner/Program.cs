@@ -55,6 +55,8 @@ internal class Program
 
 
                     writer.WriteLine("\tRESET CPU");
+
+                    mem.Dispose();
                     (cpu, mem) = ResetCpu();
                 }
 
@@ -95,6 +97,8 @@ internal class Program
             Console.WriteLine();
             Console.WriteLine(TestResultTable.CreateTable(results));
         }
+
+        mem.Dispose();
     }
 
     private static void HandleParsingErrors(IEnumerable<Error> errors)
@@ -188,8 +192,8 @@ internal class Program
     }
 
     private static (ICPU65xx cpu, IMemory mem) ResetCpu()
-    {
-        var mem = new Memory64K();
+    {        
+        var mem = Ram.Create64K();
         var cpu = new Cpu65C02S(mem);
 
         return (cpu, mem);

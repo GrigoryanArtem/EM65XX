@@ -1,6 +1,6 @@
 ﻿namespace EM65XX.Core.Abstraction;
 
-public interface IMemory
+public interface IMemory : IDisposable
 {
     byte this[ushort address] { get; set; }
     void Clear(byte value);

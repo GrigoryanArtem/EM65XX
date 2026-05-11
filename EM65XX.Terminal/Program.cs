@@ -1,69 +1,26 @@
-﻿using EM65XX.Core;
-using EM65XX.Core.Enums;
+﻿using CommandLine;
+using EM65XX.Terminal;
+using EM65XX.Terminal.CommandLine;
 using EM65XX.Terminal.Parsers;
 
-var program = args[0];
-var parser = new FullDumpParser();
-var mem = parser.Parse(program);
 
-var cpu = new Cpu65C02S(mem);
-cpu.Reset();
+Parser.Default.ParseArguments<Options>(args)
+            .WithParsed(HandleOptions)
+            .WithNotParsed(HandleParsingErrors);
 
-Console.WriteLine();
-Console.WriteLine("=== RESET STATE ===");
-PrintState();
+static void HandleOptions(Options options)
+{
+    IMemoryParser parser = options.CompressFromat
+        ? new CompressFormatParser()
+        : new BinParser();
 
-var iteration = 0;
-var close = false;
+    var runner = new CpuRunner(parser, options.StepMode);
 
-while(cpu.State != CpuState.Stopped && !close)
-{    
-    var instruction = InstructionsTable.Get(cpu.OpCode);
-    Console.WriteLine($"#{iteration++:000} | {cpu.Registers.ProgramCounter:X4} {cpu.OpCode:X2} | {instruction.Mnemonic} ({instruction.Mode})");
-    
-    cpu.Tick();
-    
-    while (false) 
-    {
-        var key = Console.ReadKey();
-        if (key.Key == ConsoleKey.Q || key.Key == ConsoleKey.Escape)
-        {
-            close = true;
-            break;
-        }
-
-        if(key.Key == ConsoleKey.I)
-        {
-            Console.WriteLine();
-            PrintState();
-            continue;
-        }
-
-        break;
-    }
+    runner.Run(options.Input);
 }
 
-Console.WriteLine();
-Console.WriteLine($"{ToDec(0x000, 4)} + {ToDec(0x004, 4)} = {ToDec(0x0008, 4)}");
-
-void PrintState()
+static void HandleParsingErrors(IEnumerable<Error> errors)
 {
-    var registers = cpu.Registers;
-
-    Console.WriteLine($"S: {registers.StackPointer:b8}");
-    Console.WriteLine($"P: {registers.ProcessorStatus:b8}");
-    Console.WriteLine($"A: {registers.A:X2}/{registers.A}");
-    Console.WriteLine($"Y: {registers.Y:X2}/{registers.Y}");
-    Console.WriteLine($"X: {registers.X:X2}/{registers.X}");
-    Console.WriteLine();
-}
-
-long ToDec(ushort address, int count)
-{
-    var dec = 0L;
-    
-    for(int i = 0; i < count; i++)    
-        dec |= (long)mem.Read((ushort)(address + i)) << (i * 8);
-
-    return dec;
+    Console.Error.WriteLine("Failed to parse command line arguments.");
+    Environment.Exit(1);
 }

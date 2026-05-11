@@ -1,20 +1,18 @@
-﻿using EM65XX.Core;
-using EM65XX.Core.Abstraction;
+﻿using EM65XX.Core.Abstraction;
 using System.Globalization;
 
 namespace EM65XX.Terminal.Parsers;
 
-public class ShortFormatParser : IMemoryParser
+public class CompressFormatParser : IMemoryParser
 {
     private readonly char[] SEPARATORS = [' ', ',', '\t'];
 
     private const char ADDRESS_MARK = '>';
     private const char COMMENT_MARK = '#';
 
-    public IMemory Parse(string filename)
-    {
-        var memory = new Memory64K();
-        memory.Clear(0xEA);
+    public void Parse(string filename, IMemory destination)
+    {        
+        destination.Clear(0xEA);
 
         using var stream = File.OpenRead(filename);
         var reader = new StreamReader(stream);
@@ -35,7 +33,7 @@ public class ShortFormatParser : IMemoryParser
 
             if (line.FirstOrDefault() == ADDRESS_MARK)
             {
-                memory.Load(currentAddress, data);
+                destination.Load(currentAddress, data);
                 data.Clear();
 
                 var newAddress = line[1..];
@@ -54,7 +52,6 @@ public class ShortFormatParser : IMemoryParser
             }
         }
 
-        memory.Load(currentAddress, data);
-        return memory;
+        destination.Load(currentAddress, data);        
     }
 }

@@ -2,21 +2,9 @@
 
 namespace EM65XX.Core;
 
-public class Memory64K : IMemory
+public class Rom(int size) : IMemory
 {
-    private const int SIZE = 1 << 16;
-    private readonly byte[] _data;
-
-    public Memory64K()
-        => _data = new byte[SIZE];
-
-    public Memory64K(byte[] data)
-    {
-        if(data.Length != SIZE)
-            throw new ArgumentOutOfRangeException(nameof(data), $"Data must be exactly {SIZE} bytes long.");
-
-        _data = data;
-    }        
+    private readonly byte[] _data = new byte[size];
 
     public void Clear(byte value)
         => Array.Fill(_data, value);
@@ -33,11 +21,9 @@ public class Memory64K : IMemory
     public byte Read(byte page, byte address)
         => _data[(page << 8) | address];
 
-    public void Write(ushort address, byte value)
-        => _data[address] = value;
+    public void Write(ushort address, byte value) { }
 
-    public void Write(byte page, byte address, byte value)
-        => _data[(page << 8) | address] = value;
+    public void Write(byte page, byte address, byte value) { }
 
     public void Load(ushort offset, params byte[] data)
         => Array.Copy(data, 0, _data, offset, data.Length);
@@ -47,4 +33,12 @@ public class Memory64K : IMemory
         foreach (var b in data)
             _data[offset++] = b;
     }
+
+    public static Ram Create64K()
+        => new(1 << 16);
+
+    public static Ram Create32K()
+        => new(1 << 8);
+
+    public void Dispose() { }
 }

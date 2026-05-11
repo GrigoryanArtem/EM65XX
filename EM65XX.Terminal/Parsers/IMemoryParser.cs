@@ -4,5 +4,5 @@ namespace EM65XX.Terminal.Parsers;
 
 public interface IMemoryParser
 {
-    IMemory Parse(string filename);
+    void Parse(string filename, IMemory destination);
 }
