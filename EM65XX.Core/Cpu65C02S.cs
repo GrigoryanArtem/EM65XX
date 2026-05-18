@@ -52,7 +52,7 @@ public partial class Cpu65C02S : ICPU65xx
 
     public void Tick()
     {
-        if (State == CpuState.Stopped)
+        if (State == CpuState.Stopped || State == CpuState.Waiting)
             return;
 
         var instruction = InstructionsTable.Get(OpCode);
@@ -1255,6 +1255,16 @@ public partial class Cpu65C02S : ICPU65xx
     {
         State = CpuState.Stopped;
     }
+
+    /// <summary>
+    /// 0 -> RDY
+    /// </summary>
+    [Instruction(Mnemonic.WAI)]
+    private void WAI(AddressingMode mode)
+    {
+        State = CpuState.Waiting;
+    }
+
 
     #endregion
 

@@ -62,7 +62,7 @@ Examples:
 
 ```powershell
 dotnet run --project EM65XX.SingleStepTests.Runner -- --dir .\ProcessorTests\65x02
-dotnet run --project EM65XX.SingleStepTests.Runner -- -d .\ProcessorTests\65x02 --instr adc
+dotnet run --project EM65XX.SingleStepTests.Runner -- -d .\ProcessorTests\65x02 --instr a9
 dotnet run --project EM65XX.SingleStepTests.Runner -- -d .\ProcessorTests\65x02 --instr "a9" --table
 dotnet run --project EM65XX.SingleStepTests.Runner -- -d .\ProcessorTests\65x02 --output .\test-results
 ```
