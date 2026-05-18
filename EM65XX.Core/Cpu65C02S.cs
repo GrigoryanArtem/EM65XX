@@ -62,6 +62,42 @@ public partial class Cpu65C02S : ICPU65xx
         handler(instruction.Mode);
     }
 
+    public void NMI()
+    {
+        if (State == CpuState.Stopped)
+            return;
+
+        var address = ReadAddress(NMIB);
+
+        Stack.PushWord(Registers.ProgramCounter);
+        Stack.Push((byte)(Registers.StatusFlags | Flags.Break));
+
+        Registers.UpdateFlags(Flags.Interrupt, true);
+        Registers.UpdateFlags(Flags.Decimal, false);
+
+        Registers.ProgramCounter = address;
+
+        State = CpuState.Running;
+    }
+
+    public void IRQ()
+    {
+        if (State == CpuState.Stopped  || Registers.StatusFlags.HasFlag(Flags.Interrupt))
+            return;
+
+        var address = ReadAddress(IRQB);
+
+        Stack.PushWord(Registers.ProgramCounter);
+        Stack.Push((byte)(Registers.StatusFlags | Flags.Break));
+
+        Registers.UpdateFlags(Flags.Interrupt, true);
+        Registers.UpdateFlags(Flags.Decimal, false);
+
+        Registers.ProgramCounter = address;
+
+        State = CpuState.Running;
+    }
+
     #region Arithmetic
 
     /// <summary>

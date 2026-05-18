@@ -153,4 +153,4 @@ Each test entry is expected to contain a `name`, an `initial` CPU state, and a `
 | JMP      |         ✅ | JSR      |         ✅ |
 | RTS      |         ✅ | RTI      |         ✅ |
 | BRK      |         ✅ | NOP      |         ✅ |
-| WAI      |         ❌ | STP      |         ✅ |
+| WAI      |         ✅ | STP      |         ✅ |
