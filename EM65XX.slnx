@@ -7,7 +7,10 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="EM65XX.Core/EM65XX.Core.csproj" />
+    <Project Path="EM65XX.Desktop/EM65XX.Desktop.csproj" Id="cfe04630-6dc4-471b-af5d-ea51217cfa29" />
     <Project Path="EM65XX.Terminal/EM65XX.Terminal.csproj" />
   </Folder>
-  <Project Path="EM65XX.SingleStepTests.Runner/EM65XX.SingleStepTests.Runner.csproj" Id="761ba5be-0ca8-46ce-a2f0-d4167c79a53e" />
+  <Folder Name="/tests/">
+    <Project Path="EM65XX.SingleStepTests.Runner/EM65XX.SingleStepTests.Runner.csproj" Id="761ba5be-0ca8-46ce-a2f0-d4167c79a53e" />
+  </Folder>
 </Solution>
