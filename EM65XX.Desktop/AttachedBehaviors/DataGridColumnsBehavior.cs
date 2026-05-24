@@ -54,7 +54,6 @@ public static class MemoryGridBehavior
                 StringFormat = "X4"
             },
 
-            Width = 70,
             IsReadOnly = true
         });
 
@@ -70,9 +69,7 @@ public static class MemoryGridBehavior
                     Mode = BindingMode.TwoWay,
                     UpdateSourceTrigger = UpdateSourceTrigger.LostFocus,
                     StringFormat = "X2"
-                },
-
-                Width = 40
+                }
             });
         }
     }

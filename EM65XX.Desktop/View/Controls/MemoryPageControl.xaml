@@ -16,8 +16,31 @@
         behaviors:MemoryGridBehavior.GenerateMemoryColumns="True"
         AutoGenerateColumns="False"
         CanUserAddRows="False"
+        CanUserSortColumns="False"
         FontFamily="Lucida Console"
         FontSize="14"
         HeadersVisibility="Column"
-        ItemsSource="{Binding Pages[0].Rows}" />
+        ItemsSource="{Binding Pages[0].Rows}"
+        SelectionUnit="Cell">
+
+        <DataGrid.CellStyle>
+            <Style
+                BasedOn="{StaticResource MaterialDesignDataGridCell}"
+                TargetType="DataGridCell">
+
+                <Setter Property="Padding" Value="4" />
+                <Setter Property="FontFamily" Value="Consolas" />
+            </Style>
+        </DataGrid.CellStyle>
+
+        <DataGrid.ColumnHeaderStyle>
+            <Style
+                BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}"
+                TargetType="DataGridColumnHeader">
+
+                <Setter Property="Padding" Value="4" />
+                <Setter Property="FontFamily" Value="Consolas" />
+            </Style>
+        </DataGrid.ColumnHeaderStyle>
+    </DataGrid>
 </UserControl>
