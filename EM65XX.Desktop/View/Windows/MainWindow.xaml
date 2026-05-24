@@ -8,7 +8,9 @@
     xmlns:pages="clr-namespace:EM65XX.Desktop.View.Pages"
     Title="MainWindow"
     Width="1280"
-    Height="720"
+    Height="1000"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{DynamicResource MaterialDesignFont}"
     mc:Ignorable="d">
     <pages:CodePage />
 </Window>

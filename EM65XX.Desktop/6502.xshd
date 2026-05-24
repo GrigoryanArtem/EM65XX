@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<SyntaxDefinition
+    name="6502"
+	xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008"
+    extensions=".asm">
+
+    <Color name="Comment" foreground="#0D6946"/>
+    <Color name="Mnemonic" fontWeight="bold"/>
+    <Color name="Number" foreground="#2977A0"/>
+    <Color name="Directive" foreground="#82217A"/>
+    <Color name="Label" foreground="#C78200"/>
+    <Color name="String" foreground="#841111"/>
+
+    <RuleSet ignoreCase="true">
+
+        <Span color="Comment">
+            <Begin>;</Begin>
+            <End>$</End>
+        </Span>
+
+        <Span color="String">
+            <Begin>"</Begin>
+            <End>"</End>
+        </Span>
+
+		<Keywords color="Mnemonic">
+            <Word>ADC</Word>
+            <Word>AND</Word>
+            <Word>ASL</Word>
+            <Word>BCC</Word>
+            <Word>BCS</Word>
+            <Word>BEQ</Word>
+            <Word>BIT</Word>
+            <Word>BMI</Word>
+            <Word>BNE</Word>
+            <Word>BPL</Word>
+            <Word>BRA</Word>
+            <Word>BRK</Word>
+            <Word>CLC</Word>
+            <Word>CLD</Word>
+            <Word>CLI</Word>
+            <Word>CMP</Word>
+            <Word>CPX</Word>
+            <Word>CPY</Word>
+            <Word>DEC</Word>
+            <Word>DEX</Word>
+            <Word>DEY</Word>
+            <Word>EOR</Word>
+            <Word>INC</Word>
+            <Word>INX</Word>
+            <Word>INY</Word>
+            <Word>JMP</Word>
+            <Word>JSR</Word>
+            <Word>LDA</Word>
+            <Word>LDX</Word>
+            <Word>LDY</Word>
+            <Word>LSR</Word>
+            <Word>NOP</Word>
+            <Word>ORA</Word>
+            <Word>PHA</Word>
+            <Word>PHP</Word>
+            <Word>PLA</Word>
+            <Word>PLP</Word>
+            <Word>ROL</Word>
+            <Word>ROR</Word>
+            <Word>RTI</Word>
+            <Word>RTS</Word>
+            <Word>SBC</Word>
+            <Word>SEC</Word>
+            <Word>SED</Word>
+            <Word>SEI</Word>
+            <Word>STA</Word>
+            <Word>STX</Word>
+            <Word>STY</Word>
+            <Word>STZ</Word>
+            <Word>TAX</Word>
+            <Word>TAY</Word>
+            <Word>TSX</Word>
+            <Word>TXA</Word>
+            <Word>TXS</Word>
+            <Word>TYA</Word>
+            <Word>WAI</Word>
+            <Word>STP</Word>
+        </Keywords>
+
+        <Rule color="Number">
+            \$[0-9A-Fa-f]+
+        </Rule>
+
+        <Rule color="Number">
+            %[01]+
+        </Rule>
+
+        <Rule color="Directive">
+            \.[A-Za-z_][A-Za-z0-9_]*
+        </Rule>
+
+        <Rule color="Label">
+            ^\s*[A-Za-z_\.][A-Za-z0-9_\.]*:
+        </Rule>
+
+    </RuleSet>
+</SyntaxDefinition>

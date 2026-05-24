@@ -98,10 +98,11 @@
 
         <avalonEdit:TextEditor
             xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+            x:Name="_textEditor"
             Grid.Row="1"
             Grid.Column="0"
-            
-            BorderBrush="LightGray"
+            Background="{DynamicResource MaterialDesignPaper}"
+            BorderBrush="Gray"
             BorderThickness="1"
             FontFamily="Consolas"
             HorizontalScrollBarVisibility="Auto"
@@ -110,24 +111,92 @@
             VerticalScrollBarVisibility="Auto" />
 
 
-        <StackPanel
+        <ScrollViewer
             Grid.Row="1"
             Grid.Column="2">
+            <StackPanel Margin="0 0 12 0">
+                <DockPanel LastChildFill="True">
 
-            <TextBlock Text="STACK" />
+                    <StackPanel
+                        DockPanel.Dock="Right"
+                        Orientation="Horizontal">
+                        <Button
+                            Width="32"
+                            Height="32"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            ToolTip="To zero page">
+                            <materialDesign:PackIcon
+                                Width="16"
+                                Height="16"
+                                Kind="FormatHorizontalAlignLeft" />
+                        </Button>
 
-            <controls:MemoryPageControl
-                VerticalAlignment="Top"
-                DataContext="{Binding Ram}" />
+                        <Button
+                            Width="32"
+                            Height="32"
+                            Padding="0"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            ToolTip="Previous page">
 
+                            <materialDesign:PackIcon
+                                Width="16"
+                                Height="16"
+                                Kind="ArrowLeftThin" />
+                        </Button>
 
-            <TextBlock
-                Margin="0 24 0 0"
-                Text="MEMORY" />
-            <controls:MemoryPageControl
-                VerticalAlignment="Top"
-                DataContext="{Binding Ram}" />
-        </StackPanel>
+                        <TextBox
+                            Width="75"
+                            Margin="8 0"
+                            Padding="8 0"
+                            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                            TextAlignment="Center" />
+
+                        <Button
+                            Width="32"
+                            Height="32"
+                            Padding="0"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            ToolTip="To zero page">
+                            <materialDesign:PackIcon
+                                Width="16"
+                                Height="16"
+                                Kind="ArrowRightThin" />
+                        </Button>
+
+                        <Button
+                            Width="32"
+                            Height="32"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            ToolTip="Previous page">
+                            <materialDesign:PackIcon
+                                Width="16"
+                                Height="16"
+                                Kind="FormatHorizontalAlignRight" />
+                        </Button>
+                    </StackPanel>
+
+                    <TextBlock
+                        Margin="0 0 32 0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                        Text="MEMORY" />
+                </DockPanel>
+
+                <controls:MemoryPageControl
+                    VerticalAlignment="Top"
+                    DataContext="{Binding Ram}" />
+
+                <TextBlock
+                    Margin="0 24 32 12"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                    Text="STACK" />
+
+                <controls:MemoryPageControl
+                    VerticalAlignment="Top"
+                    DataContext="{Binding Ram}" />
+            </StackPanel>
+        </ScrollViewer>
 
     </Grid>
 </Page>

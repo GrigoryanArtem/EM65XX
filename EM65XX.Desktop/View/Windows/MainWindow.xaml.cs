@@ -1,9 +1,12 @@
 ﻿using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Xml;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;

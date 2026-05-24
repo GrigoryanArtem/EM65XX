@@ -9,6 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="6502.xshd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="6502.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Model\" />
   </ItemGroup>
 
