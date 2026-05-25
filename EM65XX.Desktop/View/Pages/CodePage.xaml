@@ -195,6 +195,19 @@
                 <controls:MemoryPageControl
                     VerticalAlignment="Top"
                     DataContext="{Binding Ram}" />
+
+                <TextBlock
+                    Margin="0 24 32 12"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                    Text="REGISTERS" />
+
+                <controls:RegisterViewModel HorizontalAlignment="Left" />
+                <controls:RegisterViewModel HorizontalAlignment="Left" />
+                <controls:RegisterViewModel HorizontalAlignment="Left" />
+                <controls:RegisterViewModel HorizontalAlignment="Left" />
+                <controls:RegisterViewModel HorizontalAlignment="Left" />
+                <controls:RegisterViewModel HorizontalAlignment="Left" />
             </StackPanel>
         </ScrollViewer>
 

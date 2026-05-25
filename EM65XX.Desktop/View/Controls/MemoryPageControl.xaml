@@ -28,7 +28,7 @@
                 BasedOn="{StaticResource MaterialDesignDataGridCell}"
                 TargetType="DataGridCell">
 
-                <Setter Property="Padding" Value="4" />
+                <Setter Property="Padding" Value="4 2" />
                 <Setter Property="FontFamily" Value="Consolas" />
             </Style>
         </DataGrid.CellStyle>
@@ -38,7 +38,7 @@
                 BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}"
                 TargetType="DataGridColumnHeader">
 
-                <Setter Property="Padding" Value="4" />
+                <Setter Property="Padding" Value="4 2" />
                 <Setter Property="FontFamily" Value="Consolas" />
             </Style>
         </DataGrid.ColumnHeaderStyle>
