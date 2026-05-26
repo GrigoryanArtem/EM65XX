@@ -22,18 +22,18 @@ public partial class Cpu65C02S : ICPU65xx
 
     private readonly Dictionary<Mnemonic, Action<AddressingMode>> _handlers = [];
 
-    public Cpu65C02S(IMemory memory)
+    public Cpu65C02S(IMemory memory, Func<IStack8, IRegisters> registersFactory)
     {
         Memory = memory;
 
         Stack = new(memory, STACK_PAGE);
-        Registers = new(Stack);
+        Registers = registersFactory(Stack);
 
         RegisterHandlers();
     }
 
     public CpuState State { get; private set; }
-    public Registers Registers { get; }
+    public IRegisters Registers { get; }
 
     public byte OpCode => Memory[Registers.ProgramCounter];
 
@@ -43,7 +43,9 @@ public partial class Cpu65C02S : ICPU65xx
     public void Reset()
     {
         State = CpuState.Running;
-       
+
+        Registers.StackPointer = 0xFF;
+
         Registers.UpdateFlags(Flags.Decimal | Flags.Break, false);        
         Registers.UpdateFlags(Flags.Unused | Flags.Interrupt, true);
 

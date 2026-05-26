@@ -2,7 +2,7 @@
 
 public interface ICPU65xx
 {
-    Registers Registers { get; }
+    IRegisters Registers { get; }
 
     void Reset();
     void Tick();

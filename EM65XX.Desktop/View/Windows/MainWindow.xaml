@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:EM65XX.Desktop"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pages="clr-namespace:EM65XX.Desktop.View.Pages"
-    Title="MainWindow"
+    Title="EM65XX"
     Width="1280"
     Height="1000"
     Background="{DynamicResource MaterialDesignPaper}"

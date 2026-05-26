@@ -5,7 +5,7 @@
     xmlns:behaviors="clr-namespace:EM65XX.Desktop.AttachedBehaviors"
     xmlns:controls="clr-namespace:EM65XX.Desktop.View.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:EM65XX.Desktop.View.Pages"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodel="clr-namespace:EM65XX.Desktop.ViewModel"
@@ -25,6 +25,8 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="20" />
             <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
 
         <StackPanel
@@ -35,8 +37,8 @@
             Orientation="Horizontal">
 
             <Button
-                Margin="0 0 8 0"
                 Padding="12 8"
+                Command="{Binding LoadCommand}"
                 Style="{StaticResource MaterialDesignOutlinedButton}">
 
                 <DockPanel LastChildFill="True">
@@ -48,8 +50,16 @@
                 </DockPanel>
             </Button>
 
+            <Border
+                Width="1"
+                Margin="12 2"
+                BorderBrush="LightGray"
+                BorderThickness="1" />
+
             <Button
+                Margin="0 0 8 0"
                 Padding="12 8"
+                Command="{Binding ResetCommand}"
                 Style="{StaticResource MaterialDesignOutlinedButton}">
 
                 <DockPanel LastChildFill="True">
@@ -60,12 +70,6 @@
                         Text="RESET" />
                 </DockPanel>
             </Button>
-
-            <Border
-                Width="1"
-                Margin="12 2"
-                BorderBrush="LightGray"
-                BorderThickness="1" />
 
             <Button
                 Margin="0 0 8 0"
@@ -84,6 +88,7 @@
             <Button
                 Margin="0 0 8 0"
                 Padding="12 8"
+                Command="{Binding StepCommand}"
                 Style="{StaticResource MaterialDesignOutlinedButton}">
 
                 <DockPanel LastChildFill="True">
@@ -108,12 +113,133 @@
             HorizontalScrollBarVisibility="Auto"
             ShowLineNumbers="True"
             SyntaxHighlighting="assembler"
-            VerticalScrollBarVisibility="Auto" />
+            VerticalScrollBarVisibility="Auto">
+            <i:Interaction.Behaviors>
+                <behaviors:AvalonEditBehavior GiveMeTheText="{Binding AsmCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </i:Interaction.Behaviors>
+        </avalonEdit:TextEditor>
 
 
         <ScrollViewer
             Grid.Row="1"
             Grid.Column="2">
+
+            <StackPanel>
+                <TextBlock
+                    Margin="0 0 32 12"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                    Text="REGISTERS" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="A" />
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="X" />
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="Y" />
+
+                    <TextBlock
+                        Grid.Row="3"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="SP" />
+
+                    <TextBlock
+                        Grid.Row="4"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="PS" />
+
+                    <TextBlock
+                        Grid.Row="5"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="PC" />
+
+                    <controls:RegisterViewModel
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        HorizontalAlignment="Left"
+                        DataContext="{Binding Registers.A}" />
+
+                    <controls:RegisterViewModel
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        HorizontalAlignment="Left"
+                        DataContext="{Binding Registers.X}" />
+
+                    <controls:RegisterViewModel
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        HorizontalAlignment="Left"
+                        DataContext="{Binding Registers.Y}" />
+
+                    <controls:RegisterViewModel
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        HorizontalAlignment="Left"
+                        DataContext="{Binding Registers.StackPointer}" />
+
+                    <controls:RegisterViewModel
+                        Grid.Row="4"
+                        Grid.Column="1"
+                        HorizontalAlignment="Left"
+                        DataContext="{Binding Registers.ProcessorStatus}" />
+
+                    <TextBox
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        Margin="8 4"
+                        Padding="8 4"
+                        materialDesign:HintAssist.Hint="HEX"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Text="{Binding Registers.ProgramCounter, StringFormat={}{0:X2}}"
+                        TextAlignment="Center" />
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer
+            Grid.Row="1"
+            Grid.Column="4">
             <StackPanel Margin="0 0 12 0">
                 <DockPanel LastChildFill="True">
 
@@ -123,6 +249,7 @@
                         <Button
                             Width="32"
                             Height="32"
+                            Command="{Binding ToZeroPageCommand}"
                             Style="{StaticResource MaterialDesignIconForegroundButton}"
                             ToolTip="To zero page">
                             <materialDesign:PackIcon
@@ -135,6 +262,7 @@
                             Width="32"
                             Height="32"
                             Padding="0"
+                            Command="{Binding PrevPageCommand}"
                             Style="{StaticResource MaterialDesignIconForegroundButton}"
                             ToolTip="Previous page">
 
@@ -149,14 +277,16 @@
                             Margin="8 0"
                             Padding="8 0"
                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                            Text="{Binding SelectedPageIndex}"
                             TextAlignment="Center" />
 
                         <Button
                             Width="32"
                             Height="32"
                             Padding="0"
+                            Command="{Binding NextPageCommand}"
                             Style="{StaticResource MaterialDesignIconForegroundButton}"
-                            ToolTip="To zero page">
+                            ToolTip="Next page">
                             <materialDesign:PackIcon
                                 Width="16"
                                 Height="16"
@@ -166,8 +296,9 @@
                         <Button
                             Width="32"
                             Height="32"
+                            Command="{Binding ToLastPageCommand}"
                             Style="{StaticResource MaterialDesignIconForegroundButton}"
-                            ToolTip="Previous page">
+                            ToolTip="To last page">
                             <materialDesign:PackIcon
                                 Width="16"
                                 Height="16"
@@ -184,7 +315,7 @@
 
                 <controls:MemoryPageControl
                     VerticalAlignment="Top"
-                    DataContext="{Binding Ram}" />
+                    DataContext="{Binding SelectedPage}" />
 
                 <TextBlock
                     Margin="0 24 32 12"
@@ -194,20 +325,7 @@
 
                 <controls:MemoryPageControl
                     VerticalAlignment="Top"
-                    DataContext="{Binding Ram}" />
-
-                <TextBlock
-                    Margin="0 24 32 12"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
-                    Text="REGISTERS" />
-
-                <controls:RegisterViewModel HorizontalAlignment="Left" />
-                <controls:RegisterViewModel HorizontalAlignment="Left" />
-                <controls:RegisterViewModel HorizontalAlignment="Left" />
-                <controls:RegisterViewModel HorizontalAlignment="Left" />
-                <controls:RegisterViewModel HorizontalAlignment="Left" />
-                <controls:RegisterViewModel HorizontalAlignment="Left" />
+                    DataContext="{Binding StackPage}" />
             </StackPanel>
         </ScrollViewer>
 

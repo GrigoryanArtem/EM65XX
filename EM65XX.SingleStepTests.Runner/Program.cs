@@ -194,7 +194,7 @@ internal class Program
     private static (ICPU65xx cpu, IMemory mem) ResetCpu()
     {        
         var mem = Ram.Create64K();
-        var cpu = new Cpu65C02S(mem);
+        var cpu = new Cpu65C02S(mem, s => new Registers(s));
 
         return (cpu, mem);
     }

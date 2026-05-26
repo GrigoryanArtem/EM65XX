@@ -6,6 +6,7 @@
     xmlns:local="clr-namespace:EM65XX.Desktop.View.Controls"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="this"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -14,33 +15,34 @@
         VerticalAlignment="Center"
         Orientation="Horizontal">
 
-
-        <TextBlock
-            Width="30"
-            Padding="0 4"
-            VerticalAlignment="Center"
-            d:Text="PC"
-            TextAlignment="Center" />
-
         <TextBox
+            Width="50"
             Margin="8 4"
             Padding="8 4"
             d:Text="1A"
             materialDesign:HintAssist.Hint="HEX"
-            Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+            Text="{Binding ElementName=this, Path=DataContext, StringFormat={}{0:X2}}"
+            TextAlignment="Center" />
 
         <TextBox
+            Width="50"
             Margin="8 4"
             Padding="8 4"
             d:Text="26"
             materialDesign:HintAssist.Hint="DEC"
-            Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+            Text="{Binding ElementName=this, Path=DataContext, StringFormat={}{0:D2}}"
+            TextAlignment="Center" />
 
         <TextBox
+            Width="75"
             Margin="8 4"
             Padding="8 4"
             d:Text="00011010"
             materialDesign:HintAssist.Hint="BIN"
-            Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+            Text="{Binding ElementName=this, Path=DataContext, StringFormat={}{0:b8}}"
+            TextAlignment="Center" />
     </StackPanel>
 </UserControl>

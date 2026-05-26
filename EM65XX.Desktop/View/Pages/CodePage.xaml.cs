@@ -17,7 +17,7 @@ public partial class CodePage : Page
         DataContext = new CodePageViewModel();
         
         using var reader = new XmlTextReader("6502.xshd");
-
+        
         _textEditor.SyntaxHighlighting =
             HighlightingLoader.Load(
                 reader,

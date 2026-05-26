@@ -14,7 +14,7 @@ public class CpuRunner(
         using var mem = Ram.Create64K();
         parser.Parse(filename, mem);
 
-        var cpu = new Cpu65C02S(mem);
+        var cpu = new Cpu65C02S(mem, s => new Registers(s));
         cpu.Reset();
                 
         var close = false;
@@ -49,7 +49,7 @@ public class CpuRunner(
         PrintState(cpu.Registers);
     }
 
-    private static void PrintState(Registers registers)
+    private static void PrintState(IRegisters registers)
     {        
         Console.WriteLine($"S: {registers.StackPointer:b8}");
         Console.WriteLine($"P: {registers.ProcessorStatus:b8}");

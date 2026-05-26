@@ -20,7 +20,7 @@
         FontFamily="Lucida Console"
         FontSize="14"
         HeadersVisibility="Column"
-        ItemsSource="{Binding Pages[0].Rows}"
+        ItemsSource="{Binding Rows}"
         SelectionUnit="Cell">
 
         <DataGrid.CellStyle>

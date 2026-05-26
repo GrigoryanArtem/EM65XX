@@ -3,11 +3,12 @@ using EM65XX.Core.Abstraction;
 
 namespace EM65XX.Desktop.ViewModel;
 
-public class ObservableRam : ObservableObject, IMemory
+public partial class ObservableRam : ObservableObject, IMemory
 {
-    public class ObservableByte : ObservableObject
+    public partial class ObservableByte : ObservableObject
     {
-        public byte Value { get; set; }
+        [ObservableProperty]
+        public byte _value;
     }
 
     public class MemoryRow(int address, ObservableByte[] values) : ObservableObject
@@ -72,33 +73,36 @@ public class ObservableRam : ObservableObject, IMemory
 
     public void Clear(byte value)
     {
-        throw new NotImplementedException();
+        foreach(var page in Pages)        
+            for (int i = 0; i < page.Values.Length; i++)
+                page.Values[i].Value = value;        
     }
 
     public void Dispose() { }
 
     public void Load(ushort offset, IEnumerable<byte> data)
     {
-        throw new NotImplementedException();
+        foreach (var (idx, value) in data.Index())
+            Write((ushort)(offset + idx), value);
     }
 
     public byte Read(ushort address)
-    {
-        throw new NotImplementedException();
+    {        
+        return Read((byte)(address / 256), (byte)(address % 256));
     }
 
     public byte Read(byte page, byte address)
-    {
-        throw new NotImplementedException();
+    {        
+        return Pages[page].Values[address].Value;
     }
 
     public void Write(ushort address, byte value)
     {
-        throw new NotImplementedException();
+        Write((byte)(address / 256), (byte)(address % 256), value);
     }
 
     public void Write(byte page, byte address, byte value)
     {
-        throw new NotImplementedException();
+        Pages[page].Values[address].Value = value;
     }
 }

@@ -362,3 +362,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /EM65XX.SingleStepTests.Runner/Properties/launchSettings.json
+/EM65XX.Terminal/examples/asm/*.bin

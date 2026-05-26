@@ -1,10 +1,9 @@
 ﻿using EM65XX.Core.Abstraction;
 using EM65XX.Core.Enums;
-using EM65XX.Core.Extensions;
 
 namespace EM65XX.Core;
 
-public class Registers(IStack8 stack)
+public class Registers(IStack8 stack) : IRegisters
 {
     /// <summary>
     /// Accumulator <b>A</b>
@@ -51,18 +50,5 @@ public class Registers(IStack8 stack)
     {
         get => stack.Pointer;
         set => stack.Pointer = value;
-    }
-
-    public void UpdateFlags(Flags flags, byte value)
-        => StatusFlags = StatusFlags.UpdateFlags(flags, value > 0);
-
-    public void UpdateFlags(Flags flags, bool value)
-        => StatusFlags = StatusFlags.UpdateFlags(flags, value);
-
-    public void UpdateNZFlags(byte value)
-    {
-        UpdateFlags(Flags.Negative, value >= 0x80);
-        UpdateFlags(Flags.Zero, value == 0);
-    }
-    
+    }    
 }

@@ -9,6 +9,4 @@ public interface IStack8
 
     void PushWord(ushort word);
     void Push(byte value);
-
-    void Reset();
 }
