@@ -234,6 +234,74 @@
                         Text="{Binding Registers.ProgramCounter, StringFormat={}{0:X2}}"
                         TextAlignment="Center" />
                 </Grid>
+
+                <TextBlock
+                    Margin="0 12 32 12"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                    Text="INFO" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="10" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="OP CODE" />
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="MNEMONIC" />
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        Text="MODE" />
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        Text="{Binding OpCode, StringFormat={}{0:X2}}" />
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        Text="{Binding Mnemonic}" />
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="2"
+                        Margin="4 0"
+                        VerticalAlignment="Center"
+                        Text="{Binding Mode}" />
+                </Grid>
             </StackPanel>
         </ScrollViewer>
 

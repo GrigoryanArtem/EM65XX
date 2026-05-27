@@ -31,6 +31,15 @@ public partial class CodePageViewModel : ObservableObject
     [ObservableProperty]
     public string _asmCode;
 
+    [ObservableProperty]
+    public byte _opCode;
+
+    [ObservableProperty]
+    public string _mnemonic;
+
+    [ObservableProperty]
+    public string _mode;
+
     public MemoryPage SelectedPage => Ram.Pages[SelectedPageIndex];
     public MemoryPage StackPage => Ram.Pages[1];
 
@@ -90,11 +99,22 @@ public partial class CodePageViewModel : ObservableObject
     public void Reset()
     {
         _cpu.Reset();
+        UpdateCpuInfo();
     }
 
     [RelayCommand]
     public void Step()
     {
         _cpu.Tick();
+        UpdateCpuInfo();
+    }
+
+    private void UpdateCpuInfo()
+    {
+        OpCode = _cpu.OpCode;
+        var instruction = InstructionsTable.Get(OpCode);
+
+        Mnemonic = instruction.Mnemonic.ToString();
+        Mode = instruction.Mode.ToString();
     }
 }
