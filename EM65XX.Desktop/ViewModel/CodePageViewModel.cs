@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using EM65XX.Core;
 using EM65XX.Core.Abstraction;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using static EM65XX.Desktop.ViewModel.ObservableRam;
@@ -29,20 +30,21 @@ public partial class CodePageViewModel : ObservableObject
     private int _selectedPageIndex;
 
     [ObservableProperty]
-    public string _asmCode;
+    private string _asmCode;
 
     [ObservableProperty]
-    public byte _opCode;
+    private byte _opCode;
 
     [ObservableProperty]
-    public string _mnemonic;
+    private string _mnemonic;
 
     [ObservableProperty]
-    public string _mode;
+    private string _mode;
 
     [ObservableProperty]
-    public string _stdErr;
+    private string _stdErr;
 
+    public ObservableCollection<Watch> Watches { get; } = new();
     public MemoryPage SelectedPage => Ram.Pages[SelectedPageIndex];
     public MemoryPage StackPage => Ram.Pages[1];
 
@@ -113,6 +115,18 @@ public partial class CodePageViewModel : ObservableObject
     {
         _cpu.Tick();
         UpdateCpuInfo();
+
+        foreach (var watch in Watches)
+            watch.Update();
+    }
+
+    [RelayCommand]
+    public void AddWatch()
+    {
+        var watch = new Watch(Ram);
+        Watches.Add(watch);
+
+        watch.Update();
     }
 
     private void UpdateCpuInfo()
