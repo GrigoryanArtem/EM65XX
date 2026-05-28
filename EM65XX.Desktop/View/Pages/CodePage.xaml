@@ -19,6 +19,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -118,6 +119,32 @@
                 <behaviors:AvalonEditBehavior GiveMeTheText="{Binding AsmCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </i:Interaction.Behaviors>
         </avalonEdit:TextEditor>
+
+        <Border
+            Grid.Row="2"
+            Grid.ColumnSpan="3"
+            Margin="0 12 0 0"
+            Padding="0"
+            BorderBrush="Gray"
+            BorderThickness="1">
+
+            <StackPanel>
+                <TextBlock
+                    Margin="8 -7"
+                    Padding="4 0"
+                    HorizontalAlignment="Left"
+                    Background="{DynamicResource MaterialDesignPaper}"
+                    FontWeight="Bold"
+                    Text="OUTPUT" />
+
+                <ScrollViewer Height="150">
+                    <TextBlock
+                        Margin="8 16 8 8"
+                        FontFamily="Consolas"
+                        Text="{Binding StdErr}" />
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
 
 
         <ScrollViewer
@@ -307,6 +334,7 @@
 
         <ScrollViewer
             Grid.Row="1"
+            Grid.RowSpan="2"
             Grid.Column="4">
             <StackPanel Margin="0 0 12 0">
                 <DockPanel LastChildFill="True">

@@ -40,6 +40,9 @@ public partial class CodePageViewModel : ObservableObject
     [ObservableProperty]
     public string _mode;
 
+    [ObservableProperty]
+    public string _stdErr;
+
     public MemoryPage SelectedPage => Ram.Pages[SelectedPageIndex];
     public MemoryPage StackPage => Ram.Pages[1];
 
@@ -91,6 +94,9 @@ public partial class CodePageViewModel : ObservableObject
         var memStream = new MemoryStream();
 
         stream.CopyTo(memStream);
+
+        var err = process.StandardError.ReadToEnd();
+        StdErr = String.IsNullOrWhiteSpace(err) ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.ffff}] Compilation completed" : err;
 
         Ram.Load(0, memStream.ToArray());        
     }

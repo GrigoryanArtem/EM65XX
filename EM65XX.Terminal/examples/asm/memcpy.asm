@@ -1,38 +1,55 @@
-ENTRY = $8000
-RESB  = $fffc
+entry   = $8000
+resb    = $fffc
 
-F_NUM = $00
-S_NUM = $04
-R_NUM = $10
+src_lo  = $FB
+src_hi  = $FC
+dst_lo  = $FD
+dst_hi  = $FE
+cpy_sz  = $FF
 
-    .org ENTRY
+f_num = $0200
+s_num = $0210
 
-start:
-    clc
-    ldx #$00
-loop:
-    jsr add
-    inx
-    cpx #$04
-    beq exit
-    jmp loop
+memcpy:
+        cpy #$00            
 
-add:
-    lda F_NUM,x
-    adc S_NUM,x
+.copy_bytes:
+        lda (src_lo),Y      
+        sta (dst_lo),Y      
+        
+        dec cpy_sz
+        beq .done
+        
+        iny                 
+        bne .copy_bytes     
+.done:
+        rts
+       
+       
+; MAIN 
+       
+	.org entry
+	
+	jsr memcpy
+	stp	
 
-    sta R_NUM,x
-    rts
+; INIT
 
-exit:
-    stp
-
-    .org RESB
-    .word start
-    .word $0000    
-
-    .org F_NUM
+	.org resb
+	.word entry
+	.word $0000
+	
+	.org f_num
     .byte $bd,$51,$7c,$26
 
-    .org S_NUM
+    .org s_num
     .byte $4e,$5c,$f7,$13
+    
+    .org src_lo
+    .word $0200
+    
+    .org dst_lo
+    .word $0220
+    
+    .org cpy_sz
+    .byte $04
