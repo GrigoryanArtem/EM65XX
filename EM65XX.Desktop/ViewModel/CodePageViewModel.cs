@@ -44,6 +44,9 @@ public partial class CodePageViewModel : ObservableObject
     [ObservableProperty]
     private string _stdErr;
 
+    [ObservableProperty]
+    private bool _canRun;
+
     public ObservableCollection<Watch> Watches { get; } = new();
     public MemoryPage SelectedPage => Ram.Pages[SelectedPageIndex];
     public MemoryPage StackPage => Ram.Pages[1];
@@ -84,7 +87,7 @@ public partial class CodePageViewModel : ObservableObject
         var psi = new ProcessStartInfo
         {
             FileName = "vasm6502_oldstyle.exe",
-            Arguments = $"-Fbin -wdc02 -dotdir -pad=0xea {input} -o \"{output}\"",
+            Arguments = $"-x -Fbin -wdc02 -dotdir -pad=0xea {input} -o \"{output}\"",
             RedirectStandardError = true,
             UseShellExecute = false
         };
@@ -92,15 +95,17 @@ public partial class CodePageViewModel : ObservableObject
         using var process = Process.Start(psi);
         process.WaitForExit();
 
-        using var stream = File.OpenRead(output);
-        var memStream = new MemoryStream();
-
-        stream.CopyTo(memStream);
-
         var err = process.StandardError.ReadToEnd();
         StdErr = String.IsNullOrWhiteSpace(err) ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.ffff}] Compilation completed" : err;
 
-        Ram.Load(0, memStream.ToArray());        
+        if (process.ExitCode == 0)
+        {
+            using var stream = File.OpenRead(output);
+            var memStream = new MemoryStream();
+
+            stream.CopyTo(memStream);
+            Ram.Load(0, memStream.ToArray());
+        }
     }
 
     [RelayCommand]
@@ -118,6 +123,22 @@ public partial class CodePageViewModel : ObservableObject
 
         foreach (var watch in Watches)
             watch.Update();
+    }
+
+    [RelayCommand]
+    public async Task Run()
+    {            
+        while(_cpu.State == Core.Enums.CpuState.Running)
+        {
+            for(int i = 0; i < 10; i++)
+                _cpu.Tick();
+
+            UpdateCpuInfo();
+            foreach (var watch in Watches)
+                watch.Update();
+
+            await Task.Delay(16);
+        }
     }
 
     [RelayCommand]

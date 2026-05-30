@@ -75,6 +75,7 @@
             <Button
                 Margin="0 0 8 0"
                 Padding="12 8"
+                Command="{Binding RunCommand}"
                 Style="{StaticResource MaterialDesignOutlinedButton}">
 
                 <DockPanel LastChildFill="True">
@@ -138,9 +139,12 @@
                     Text="OUTPUT" />
 
                 <ScrollViewer Height="150">
-                    <TextBlock
+                    <TextBox
                         Margin="8 16 8 8"
+                        Background="Transparent"
+                        BorderThickness="0"
                         FontFamily="Consolas"
+                        Style="{x:Null}"
                         Text="{Binding StdErr}" />
                 </ScrollViewer>
             </StackPanel>
@@ -365,7 +369,7 @@
                         <DataTemplate>
                             <Grid Margin="0 8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="2*" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
@@ -378,7 +382,7 @@
                                 <TextBox
                                     Grid.Row="0"
                                     Grid.Column="0"
-                                    Margin="8 4"
+                                    Margin="2 4"
                                     Padding="8 4"
                                     materialDesign:HintAssist.Hint="Address"
                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
@@ -387,7 +391,7 @@
                                 <TextBox
                                     Grid.Row="0"
                                     Grid.Column="1"
-                                    Margin="8 4"
+                                    Margin="2 4"
                                     Padding="8 4"
                                     materialDesign:HintAssist.Hint="Size"
                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
@@ -396,7 +400,7 @@
                                 <TextBox
                                     Grid.Row="1"
                                     Grid.ColumnSpan="2"
-                                    Margin="8 4"
+                                    Margin="2 4"
                                     Padding="8 4"
                                     materialDesign:HintAssist.Hint="Value"
                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
