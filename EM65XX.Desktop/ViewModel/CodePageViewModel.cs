@@ -25,24 +25,26 @@ public partial class CodePageViewModel : ObservableObject
     public ObservableRam Ram { get; }
     public IRegisters Registers => _cpu.Registers;
 
+
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedPage))]
     private int _selectedPageIndex;
 
     [ObservableProperty]
-    private string _asmCode;
+    private string? _asmCode;
 
     [ObservableProperty]
     private byte _opCode;
 
     [ObservableProperty]
-    private string _mnemonic;
+    private string? _mnemonic;
 
     [ObservableProperty]
-    private string _mode;
+    private string? _mode;
 
     [ObservableProperty]
-    private string _stdErr;
+    private string? _stdErr;
 
     [ObservableProperty]
     private bool _canRun;
@@ -105,6 +107,8 @@ public partial class CodePageViewModel : ObservableObject
 
             stream.CopyTo(memStream);
             Ram.Load(0, memStream.ToArray());
+
+            Reset();
         }
     }
 
@@ -112,17 +116,16 @@ public partial class CodePageViewModel : ObservableObject
     public void Reset()
     {
         _cpu.Reset();
-        UpdateCpuInfo();
+
+        UpdateData();
     }
 
     [RelayCommand]
     public void Step()
     {
         _cpu.Tick();
-        UpdateCpuInfo();
 
-        foreach (var watch in Watches)
-            watch.Update();
+        UpdateData();
     }
 
     [RelayCommand]
@@ -133,9 +136,7 @@ public partial class CodePageViewModel : ObservableObject
             for(int i = 0; i < 10; i++)
                 _cpu.Tick();
 
-            UpdateCpuInfo();
-            foreach (var watch in Watches)
-                watch.Update();
+            UpdateData();
 
             await Task.Delay(16);
         }
@@ -148,6 +149,14 @@ public partial class CodePageViewModel : ObservableObject
         Watches.Add(watch);
 
         watch.Update();
+    }
+
+    private void UpdateData()
+    {
+        UpdateCpuInfo();
+
+        foreach (var watch in Watches)
+            watch.Update();
     }
 
     private void UpdateCpuInfo()
