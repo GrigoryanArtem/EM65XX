@@ -371,6 +371,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="2*" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="auto" />
                                 </Grid.ColumnDefinitions>
 
                                 <Grid.RowDefinitions>
@@ -397,9 +398,20 @@
                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                     Text="{Binding Size}" />
 
+                                <ToggleButton
+                                    Grid.Column="2"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="4 0 2 0"
+                                    materialDesign:ToggleButtonAssist.OnContent="S"
+                                    Content="U"
+                                    IsChecked="{Binding Signed}"
+                                    Style="{StaticResource MaterialDesignActionLightToggleButton}"
+                                    ToolTip="MaterialDesignActionLightToggleButton" />
+
                                 <TextBox
                                     Grid.Row="1"
-                                    Grid.ColumnSpan="2"
+                                    Grid.ColumnSpan="3"
                                     Margin="2 4"
                                     Padding="8 4"
                                     materialDesign:HintAssist.Hint="Value"
