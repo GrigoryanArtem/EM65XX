@@ -415,6 +415,7 @@
                                     Margin="2 4"
                                     Padding="8 4"
                                     materialDesign:HintAssist.Hint="Value"
+                                    IsReadOnly="True"
                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                     Text="{Binding Value, Mode=OneWay}" />
                             </Grid>
